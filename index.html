@@ -1,0 +1,152 @@
+<!--
+  Shinobi Life Simulator
+  A browser-based ninja life-sim RPG.
+  Structure: character-creation screen + tabbed game shell + modal overlays.
+  Logic lives in script.js; styling in style.css. No external dependencies.
+-->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Shinobi Life Simulator - live the life of a ninja from birth to legend." />
+<title>Shinobi Life Simulator</title>
+<link rel="stylesheet" href="style.css" />
+
+<!-- Decorative animated backdrop -->
+<div id="backdrop" aria-hidden="true"></div>
+
+<!-- ============================================================= -->
+<!-- CHARACTER CREATION SCREEN                                      -->
+<!-- ============================================================= -->
+<section id="screen-creation" class="screen active">
+  <div class="creation-wrap">
+    <header class="title-block">
+      <h1 class="game-title">忍 Shinobi Life Simulator</h1>
+      <p class="game-subtitle">Born in shadow. Forge your legend.</p>
+    </header>
+
+    <div class="creation-grid">
+      <!-- Village selection -->
+      <div class="panel creation-panel">
+        <h2 class="panel-title">Choose Your Hidden Village</h2>
+        <div id="village-select" class="village-grid"><!-- villages injected --></div>
+      </div>
+
+      <!-- Character preview -->
+      <div class="panel creation-panel">
+        <div class="creation-row">
+          <h2 class="panel-title">Your Newborn Shinobi</h2>
+          <button id="btn-reroll" class="btn btn-ghost" type="button">🎲 Re-roll</button>
+        </div>
+
+        <label class="field">
+          <span class="field-label">Name</span>
+          <input id="input-name" class="text-input" type="text" maxlength="24" placeholder="Enter a name…" />
+        </label>
+
+        <div id="creation-preview" class="creation-preview"><!-- rolled character injected --></div>
+
+        <label class="field">
+          <span class="field-label">Difficulty</span>
+          <div id="difficulty-select" class="chip-row"><!-- difficulties injected --></div>
+        </label>
+
+        <button id="btn-begin" class="btn btn-primary btn-block" type="button" disabled>Begin Life</button>
+        <p class="hint" id="begin-hint">Select a village to continue.</p>
+      </div>
+    </div>
+
+    <p class="version-tag">v1.0 · autosaves to your browser</p>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<!-- MAIN GAME SHELL                                                -->
+<!-- ============================================================= -->
+<section id="screen-game" class="screen">
+  <!-- HUD / header -->
+  <header id="hud" class="hud">
+    <div class="hud-identity">
+      <div id="hud-crest" class="crest">忍</div>
+      <div class="hud-names">
+        <div id="hud-name" class="hud-name">—</div>
+        <div id="hud-sub" class="hud-sub">—</div>
+      </div>
+    </div>
+
+    <div class="hud-bars">
+      <div class="bar-group">
+        <span class="bar-label">Health</span>
+        <div class="bar"><div id="bar-health" class="bar-fill health"></div></div>
+      </div>
+      <div class="bar-group">
+        <span class="bar-label">Chakra</span>
+        <div class="bar"><div id="bar-chakra" class="bar-fill chakra"></div></div>
+      </div>
+      <div class="bar-group">
+        <span class="bar-label">Stamina</span>
+        <div class="bar"><div id="bar-stamina" class="bar-fill stamina"></div></div>
+      </div>
+    </div>
+
+    <div class="hud-meta">
+      <div class="meta-chip" title="Age"><span class="meta-ico">🎂</span><span id="hud-age">0</span></div>
+      <div class="meta-chip" title="Level"><span class="meta-ico">⭐</span><span id="hud-level">1</span></div>
+      <div class="meta-chip" title="Ryo (money)"><span class="meta-ico">💰</span><span id="hud-wealth">0</span></div>
+      <div class="meta-chip" title="Fame"><span class="meta-ico">🔥</span><span id="hud-fame">0</span></div>
+    </div>
+  </header>
+
+  <!-- Tab navigation -->
+  <nav id="tabs" class="tabs" role="tablist">
+    <button class="tab active" data-tab="character" role="tab">Character</button>
+    <button class="tab" data-tab="stats" role="tab">Stats</button>
+    <button class="tab" data-tab="actions" role="tab">Actions</button>
+    <button class="tab" data-tab="missions" role="tab">Missions</button>
+    <button class="tab" data-tab="techniques" role="tab">Techniques</button>
+    <button class="tab" data-tab="relationships" role="tab">Bonds</button>
+    <button class="tab" data-tab="inventory" role="tab">Inventory</button>
+    <button class="tab" data-tab="shop" role="tab">Market</button>
+    <button class="tab" data-tab="map" role="tab">Village</button>
+    <button class="tab" data-tab="timeline" role="tab">Timeline</button>
+    <button class="tab" data-tab="journal" role="tab">Journal</button>
+    <button class="tab" data-tab="settings" role="tab">Settings</button>
+  </nav>
+
+  <!-- Panels container -->
+  <main id="panels" class="panels">
+    <div id="panel-character" class="panel-view active"></div>
+    <div id="panel-stats" class="panel-view"></div>
+    <div id="panel-actions" class="panel-view"></div>
+    <div id="panel-missions" class="panel-view"></div>
+    <div id="panel-techniques" class="panel-view"></div>
+    <div id="panel-relationships" class="panel-view"></div>
+    <div id="panel-inventory" class="panel-view"></div>
+    <div id="panel-shop" class="panel-view"></div>
+    <div id="panel-map" class="panel-view"></div>
+    <div id="panel-timeline" class="panel-view"></div>
+    <div id="panel-journal" class="panel-view"></div>
+    <div id="panel-settings" class="panel-view"></div>
+  </main>
+
+  <!-- Persistent "advance year" footer -->
+  <footer id="year-bar" class="year-bar">
+    <div class="year-info">
+      <span id="year-stage" class="year-stage">Baby</span>
+      <span id="year-hint" class="year-hint">Choose an action, then advance the year.</span>
+    </div>
+    <button id="btn-advance" class="btn btn-primary" type="button">Advance Year ▸</button>
+  </footer>
+</section>
+
+<!-- ============================================================= -->
+<!-- MODAL OVERLAY (reused for events, combat, minigames, endings) -->
+<!-- ============================================================= -->
+<div id="modal-overlay" class="modal-overlay" aria-hidden="true">
+  <div id="modal" class="modal" role="dialog" aria-modal="true">
+    <div id="modal-body" class="modal-body"><!-- injected --></div>
+  </div>
+</div>
+
+<!-- Toast / notification stack -->
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script defer src="script.js"></script>
