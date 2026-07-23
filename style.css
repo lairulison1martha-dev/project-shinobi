@@ -37,18 +37,31 @@
 
 /* ---------- Reset ---------- */
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html { height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0;
+  min-height: 100%;
   font-family: var(--sans);
   color: var(--parchment);
   background: var(--ink-1);
   line-height: 1.5;
   overflow-x: hidden;
+  /* iOS: no grey tap flash, no rubber-band overscroll bleeding the page */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3, h4 { font-family: var(--serif); font-weight: 600; margin: 0; letter-spacing: 0.02em; }
-button, input, select { font-family: inherit; }
+button, input, select, textarea { font-family: inherit; }
 ::selection { background: var(--chakra-glow); }
+
+/* Interactive controls: instant taps (no 300ms delay / double-tap zoom) and no
+   accidental text selection when tapping game chrome. Text content stays selectable. */
+.btn, .tab, .chip, .action-btn, .choice-btn, .village-card, .map-node, .switch, .meta-chip {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 /* ---------- Animated backdrop ---------- */
 #backdrop {
@@ -67,14 +80,19 @@ button, input, select { font-family: inherit; }
 @keyframes drift { to { background-position: 260px 260px; } }
 
 /* ---------- Screens ---------- */
-.screen { display: none; min-height: 100vh; }
+/* Dynamic viewport units (dvh) keep the sticky HUD/year-bar correct while iOS
+   Safari's toolbar expands and collapses; vh is the fallback for old browsers. */
+.screen { display: none; min-height: 100vh; min-height: 100dvh; }
 .screen.active { display: block; }
-#screen-game.active { display: flex; flex-direction: column; }
+#screen-game.active { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
 
 /* =================================================================
    CHARACTER CREATION
    ================================================================= */
-.creation-wrap { max-width: 1080px; margin: 0 auto; padding: 4vh 20px 40px; }
+.creation-wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding: max(4vh, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
 .title-block { text-align: center; margin-bottom: 28px; }
 .game-title {
   font-size: clamp(2rem, 5vw, 3.4rem);
@@ -158,8 +176,11 @@ button, input, select { font-family: inherit; }
 .hud {
   position: sticky; top: 0; z-index: 20;
   display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
-  padding: 12px 18px; background: rgba(20,24,29,0.92);
-  backdrop-filter: blur(8px); border-bottom: 1px solid var(--ink-4);
+  /* Pad past the notch/status bar (top) and the display cutouts (sides). */
+  padding: max(12px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 12px max(18px, env(safe-area-inset-left));
+  background: rgba(20,24,29,0.92);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--ink-4);
 }
 .hud-identity { display: flex; align-items: center; gap: 12px; min-width: 180px; }
 .crest {
@@ -186,8 +207,10 @@ button, input, select { font-family: inherit; }
    TABS
    ================================================================= */
 .tabs {
-  display: flex; gap: 4px; overflow-x: auto; padding: 8px 14px;
+  display: flex; gap: 4px; overflow-x: auto;
+  padding: 8px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
   background: var(--ink-1); border-bottom: 1px solid var(--ink-4); scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 .tabs::-webkit-scrollbar { height: 6px; }
 .tabs::-webkit-scrollbar-thumb { background: var(--ink-4); border-radius: 3px; }
@@ -202,7 +225,10 @@ button, input, select { font-family: inherit; }
 /* =================================================================
    PANELS
    ================================================================= */
-.panels { flex: 1; padding: 18px; max-width: 1180px; margin: 0 auto; width: 100%; }
+.panels {
+  flex: 1; max-width: 1180px; margin: 0 auto; width: 100%;
+  padding: 18px max(18px, env(safe-area-inset-right)) 18px max(18px, env(safe-area-inset-left));
+}
 .panel-view { display: none; animation: fadein .25s ease; }
 .panel-view.active { display: block; }
 
@@ -330,9 +356,12 @@ button, input, select { font-family: inherit; }
 .year-bar {
   position: sticky; bottom: 0; z-index: 20;
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
-  padding: 12px 18px; background: rgba(20,24,29,0.95); backdrop-filter: blur(8px);
+  /* Clear the home indicator (bottom) and side cutouts. */
+  padding: 12px max(18px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  background: rgba(20,24,29,0.95); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   border-top: 1px solid var(--ink-4);
 }
+.year-bar .btn { min-height: 44px; }
 .year-stage { font-family: var(--serif); color: var(--gold-soft); font-size: 1rem; margin-right: 10px; }
 .year-hint { color: var(--muted); font-size: .84rem; }
 .year-info { display: flex; align-items: baseline; flex-wrap: wrap; }
@@ -342,12 +371,16 @@ button, input, select { font-family: inherit; }
    ================================================================= */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 50; display: none;
-  align-items: center; justify-content: center; padding: 18px;
-  background: rgba(0,0,0,0.66); backdrop-filter: blur(3px);
+  align-items: center; justify-content: center;
+  /* Keep modals off the notch/home-indicator when they fill the screen. */
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  background: rgba(0,0,0,0.66); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
 }
 .modal-overlay.open { display: flex; animation: fadein .2s; }
 .modal {
-  width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+  width: 100%; max-width: 560px;
+  max-height: 90vh; max-height: 90dvh; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--ink-2); border: 1px solid var(--gold); border-radius: var(--radius);
   box-shadow: 0 0 40px rgba(0,0,0,.6); animation: pop .25s cubic-bezier(.2,1.2,.3,1);
 }
@@ -378,7 +411,7 @@ button, input, select { font-family: inherit; }
 .mini-bar.hp > i { background: linear-gradient(90deg,#7d2b2b,var(--bad)); }
 .mini-bar.cp > i { background: linear-gradient(90deg,#2f6fb0,var(--water)); }
 .vs { font-family: var(--serif); color: var(--chakra); font-size: 1.2rem; }
-.combat-log { background: var(--ink-1); border: 1px solid var(--ink-4); border-radius: var(--radius-sm); padding: 10px; height: 130px; overflow-y: auto; font-size: .84rem; margin-bottom: 12px; }
+.combat-log { background: var(--ink-1); border: 1px solid var(--ink-4); border-radius: var(--radius-sm); padding: 10px; height: 130px; overflow-y: auto; -webkit-overflow-scrolling: touch; font-size: .84rem; margin-bottom: 12px; }
 .combat-log p { margin: 3px 0; }
 .combat-log .dmg { color: #ff8a8a; }
 .combat-log .heal { color: var(--good); }
@@ -421,13 +454,32 @@ button, input, select { font-family: inherit; }
   .stat-list { grid-template-columns: 1fr; }
   .hud-bars { order: 3; width: 100%; }
   .hud-meta { order: 2; }
+  /* Comfortable touch targets on phones/tablets (Apple HIG: ≥44px). */
+  .tab { padding: 11px 15px; min-height: 44px; }
+  .chip, .btn-sm { min-height: 40px; }
+  .combat-actions .btn { min-height: 46px; }
+  .action-btn { min-height: 76px; }
+  .list-card .btn-sm { min-height: 40px; padding: 9px 14px; }
+  .choice-btn { padding: 14px; }
+  .map-node { padding: 22px 14px; }
 }
 @media (max-width: 520px) {
   .village-grid { grid-template-columns: 1fr; }
-  .panels { padding: 12px; }
-  .hud { gap: 10px; padding: 10px 12px; }
-  .combat-arena { grid-template-columns: 1fr; }
+  /* Keep side safe-area insets while tightening the base padding. */
+  .panels { padding: 12px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left)); }
+  .hud { gap: 10px; padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left)); }
+  .creation-wrap { padding: max(3vh, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+  .combat-arena { grid-template-columns: 1fr; gap: 6px; }
   .vs { display: none; }
+  .combat-actions { grid-template-columns: repeat(2, 1fr); }
+  .modal-body { padding: 18px; }
+  .game-title { font-size: clamp(1.7rem, 8vw, 2.6rem); }
+}
+/* Short landscape (phone on its side): let tall modals scroll rather than clip. */
+@media (max-height: 480px) and (orientation: landscape) {
+  .modal { max-height: 96vh; max-height: 96dvh; }
+  .combat-arena { grid-template-columns: 1fr auto 1fr; }
+  .vs { display: block; }
 }
 
 /* Reduced motion */

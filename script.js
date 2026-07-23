@@ -1989,6 +1989,7 @@
     selDifficulty: "normal",
 
     init() {
+      this.registerServiceWorker();
       this.buildCreationUI();
       this.wireGlobalButtons();
       // Resume existing save?
@@ -1998,6 +1999,17 @@
         this.enterGame();
         UI.toast("Welcome back", `${saved.char.name}, age ${saved.age}`, "good");
       }
+    },
+
+    // Register the PWA service worker for offline/home-screen use. Only runs
+    // when served over http(s); silently skipped on file:// (the game is fully
+    // self-contained and already works offline when opened directly).
+    registerServiceWorker() {
+      if (!("serviceWorker" in navigator)) return;
+      if (location.protocol !== "http:" && location.protocol !== "https:") return;
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(() => { /* offline PWA is best-effort */ });
+      });
     },
 
     // ----- Character creation screen -----
