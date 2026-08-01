@@ -3,12 +3,18 @@
    Cache-first precache so the installed PWA launches fullscreen and
    plays fully offline. Bump CACHE to invalidate old assets on deploy.
    ================================================================= */
-const CACHE = "shinobi-v1";
+const CACHE = "shinobi-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
-  "./script.js",
+  "./data.js",
+  "./sprite.js",
+  "./core.js",
+  "./systems.js",
+  "./world.js",
+  "./minigames.js",
+  "./ui.js",
   "./manifest.webmanifest",
   "./icon-180.png",
   "./icon-192.png",
