@@ -1,53 +1,139 @@
 # 忍 Shinobi Life Simulator
 
-An original, browser-based **ninja life-sim RPG**. Be born in a hidden village, forge
-your path from a helpless baby to a Legendary Shinobi, and live a full life of training,
-missions, turn-based battles, techniques, bonds, and hundreds of random events — all
-saved automatically to your browser.
+A **visual 2D ninja life simulator**. You are born as a newborn in a hidden village and
+watch your character physically grow — through infancy, the Academy, Genin life, adulthood
+and old age — while your appearance changes to reflect your age, rank, clothing, weapon,
+bloodline, dojutsu, chakra nature, summons and Jinchuriki status.
 
-No installation, no build step, no dependencies. **Just open `index.html`.**
+Runs entirely in the browser. No build step, no backend, no dependencies, no external
+images — every visual is procedurally generated SVG.
+
+**To play: open `index.html` in any modern browser.** (Or serve the folder over HTTP to
+enable offline PWA install — see *Running* below.)
 
 ---
 
-## How to Play
+## Core loop
 
-1. Open `index.html` in any modern browser.
-2. Choose one of six **hidden villages**, re-roll your randomly generated newborn shinobi
-   (clan, bloodline, chakra affinity, family, traits), pick a **difficulty**, and name them.
-3. In **Actions**, spend stamina each year on activities (train, study, meditate, spar,
-   minigames, explore, tournaments, build bonds, form a team…).
-4. Press **Advance Year** to age up, recover, and face whatever fate brings — random
-   events, world events, exams, and eventually your ending.
+1. **Be born.** Pick a village, roll your newborn (clan, bloodline, chakra nature, family,
+   looks), choose a difficulty, and start at **age 0**.
+2. **Each year, pick activities** from the *Actions* tab. What you can do is strictly
+   limited by your age, life stage, rank and training.
+3. **Advance the year.** Your sprite visibly grows, life events fire, and the world moves.
+4. **Enrol at the Academy at 6**, study six subjects, and **earn** your graduation.
+5. **Graduate → Genin** — headband, squad, sensei, and missions unlock.
+6. Keep going: missions, exploration, bloodlines, summons, and (very rarely) a Tailed Beast.
 
-Your game **autosaves**. You can also export/import a save code in **Settings**.
+## Controls
 
-## Features
+| Action | How |
+|---|---|
+| Choose an activity | Tap/click a card in **Actions** |
+| Advance a year | **Advance Year** button (bottom bar; label changes with context) |
+| Undo a year | **↺ De-Age** button (disabled in Ironman) |
+| Minigames | Tap the big button, tap the target, press **Space/Enter**, or use a gamepad face button |
+| Navigate | Tab bar, or the **Village** map |
 
-- **6 hidden villages**, rare **clans** & **bloodlines**, chakra affinities, personality traits
-- **16 stats**, Level 1–100, per-element mastery, technique mastery, per-village reputation
-- **Turn-based combat** with attack, chakra jutsu, dodge, counter, defend, team attacks &
-  ultimate jutsu, versus personality-driven enemy AI (Aggressive / Defensive / Tactical / Reckless)
-- **Boss battles**, **exams** (Academy Graduation, Chunin, Jonin, ANBU), and **world events**
-  (ninja wars, Kage summits, festivals, disasters, missing-nin)
-- **Missions** ranked D → SS, a full **economy**, **inventory** & equipment, a **market**
-- **Hundreds of procedurally generated techniques** across 7 disciplines, plus procedural
-  missions, random life events, and thousands of unique NPCs
-- **Training minigames**, **100+ achievements** (with hidden legendaries), and **6 endings**
-- Four **difficulty modes** including **Ironman** (single save, permadeath)
-- Responsive dark "ninja scroll" UI, smooth animations, and a **sound-ready** audio layer
+## Key systems
 
-## Project Structure
+**Life stage ≠ rank.** Age gives you a life stage (Newborn → Toddler → Young Child →
+Academy Age → Adolescent → Teen → Young Adult → Adult → Veteran → Elder). Rank is *earned*
+(Civilian → Academy Student → Genin → Chunin → Jonin → Elite → ANBU → Captain → Village
+Leader → Legendary). A 12-year-old who failed the exam is still an Academy Student; a true
+prodigy can sit the exam early.
+
+**Age restrictions are enforced in the rules layer, not the UI.** Babies cannot hold
+weapons, fight, take missions, shop for weapons or leave the village — and calling the
+functions directly will not bypass it. Shops refuse to sell weapons to children.
+
+**Academy.** Six tracked subjects (Knowledge, Chakra Control, Taijutsu, Accuracy, Clone,
+Transformation) plus attendance. Graduation needs age, attendance, marks, and both core
+techniques. Skipping class costs attendance and your teacher's respect. Intelligence drives
+the written exam; chakra control drives the practical. A teacher who respects you may vouch
+for a near miss — but relationships never *guarantee* graduation.
+
+**Missions** are hard-locked until you actually graduate. Ranks D → SS.
+
+**De-Age.** Before every year a full state snapshot is taken (up to 8). De-aging restores
+*everything* together — money, items, techniques, achievements, missions, summons, bonds,
+memories and story flags — so nothing can be duplicated. Disabled in Ironman.
+
+**Minigames.** Two real skill games that drive progression:
+*Chakra Control* (a closing ring you release on target — tree walking, water walking, leaf
+focus, meditation, shaping, nature training) and *Precision* (a drifting reticle with wind).
+Both grade Failed / Okay / Good / Great / Perfect, scale difficulty with mastery,
+exhaustion and injury, and can award a rare technique insight on a great run.
+Accessibility: slow mode, wider timing windows, and automatic mode (reduced rewards).
+
+**Relationships.** Every bond tracks ten meters (affection, trust, respect, loyalty, fear,
+rivalry, attraction, jealousy, resentment, familiarity) and permanent **memories**
+(`savedMe`, `betrayedMe`, `keptPromise`, `abandonedMe`, …). Betrayal *scars* a bond —
+gifts and kindness barely move it afterwards. Only de-aging can truly undo it.
+
+**Personality** is grown, not chosen. Repeated choices build traits (kind/cruel,
+brave/timid, calm/reckless, loyal/independent, honest/manipulative, ambitious, …), opposing
+traits erode each other, and your strongest traits show on the Character screen.
+
+**Clans & bloodlines** follow inheritance, never random rolls: Uchiha → Sharingan,
+Hyuga → Byakugan, Kaguya → Dead Bone Pulse, Yuki → Ice, Nara → Shadow, Yamanaka → Mind,
+Akimichi → Expansion, Aburame → Insects, Inuzuka → hounds, Hozuki → Hydrification,
+Senju → vitality, Uzumaki → sealing. Rare clans stay rare.
+
+**Dojutsu are visible on the sprite.** The Sharingan awakens through emotional weight and
+combat, advancing one → two → three tomoe, with Mangekyo requiring an extreme event and
+the Eternal form a transplant path. Chakra drains **only while active**, and overuse causes
+strain, forced deactivation, and — for the Mangekyo — permanent vision damage.
+
+**Chakra natures and bloodlines render behind the character** (flames, water, wind, rock,
+sparks; ice, wood, lava, shadow, insects, bone, seals).
+
+**Tailed Beasts are never chosen.** They appear only through rare random world events
+(~1–8% a year depending on your rank, deep exploration, sealing study and war). Meeting one
+does **not** make you a host — you can speak, observe, help, alert the village, flee, fight
+or attempt a sealing. Freeing one may earn a *willing* bond. Once sealed, a miniature of
+the beast appears in the scene with its mood, trust and synchronisation, and its chakra
+cloak renders behind you. Low trust means refusal, mockery and seized control; high trust
+unlocks transformation stages.
+
+**Also included:** weapon mastery with age/rank/strength gates and on-sprite carry
+positions, summoning contracts found in the world, 90+ achievements with hidden legendary
+entries, eight endings, dynamic scenes with ink/leaf/smoke/scroll transitions, and a
+full timeline and journal.
+
+## Running
+
+Open `index.html` directly — everything works offline from the file system.
+
+To install as an app (and enable the service worker), serve the folder over HTTP:
+
+```bash
+python3 -m http.server 8000    # then open http://localhost:8000
+```
+
+On iOS: Share → **Add to Home Screen** for a fullscreen, offline, safe-area-aware app.
+
+## Project structure
 
 | File | Purpose |
-|------|---------|
-| `index.html` | Page structure: creation screen, tabbed game shell, modal & toast layers |
-| `style.css`  | Dark ink theme, responsive layout, animations (CSS variables for easy theming) |
-| `script.js`  | All game logic, split into clearly-commented modules (see below) |
+|---|---|
+| `index.html` | Screens: loading → creation → game shell |
+| `style.css` | Dark ink theme, scene/sprite/minigame styling, responsive + safe areas |
+| `data.js` | All content: stages, ranks, clans, bloodlines, weapons, summons, beasts, scenes, activities, encounters, events |
+| `sprite.js` | Procedural layered SVG character + scene renderer |
+| `core.js` | RNG, State, Save (versioned migration), Snapshots, Gen, **Rules** (all gating) |
+| `systems.js` | Personality, Relations, Academy, Techniques, Shop, Achievements, Endings |
+| `world.js` | Dojutsu, Summons, Beasts, Combat, Missions, Exploration, Engine |
+| `minigames.js` | Chakra timing + precision throwing |
+| `ui.js` | Rendering, flows, bootstrap |
+| `sw.js`, `manifest.webmanifest`, `icon-*.png` | PWA / offline install |
 
-`script.js` is organized into modules under the global `SLS` namespace for easy expansion:
-`RNG · Data · Generators · State · Save · Engine · Combat · Missions · Exams · Minigames ·
-Relations · Shop · Techniques · Achievements · Endings · Audio · UI · Game`.
+Everything is data-driven: add a clan, weapon, scene, encounter or event by appending to
+the relevant table in `data.js` — no engine changes needed.
 
-Adding content is intentionally easy — most systems are data-driven: extend the tables in
-`Data` (villages, clans, techniques, missions, events, shop, achievements) or the template
-arrays in `Generators`.
+## Saves
+
+Autosaves to `localStorage` (`shinobi-save-v1`). **Version-2 migration** upgrades saves from
+the original release in place — old ranks map to the new ladder, an Academy record is
+inferred, flat relationships expand to the ten-meter model, and all new fields get sensible
+defaults. The pre-migration save is copied to `shinobi-save-backup` first. Export/import
+codes are available in Settings.
