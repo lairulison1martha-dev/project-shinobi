@@ -335,6 +335,8 @@
       if (!can.ok && !(opts && opts.forced)) { SLS.UI && SLS.UI.toast("Too young", can.reason, "bad"); if (onEnd) onEnd({ win: false, blocked: true }); return; }
       this.cur = { player: this.playerFighter(), enemy, opts: opts || {}, onEnd, log: [], over: false, turn: 0 };
       this.push(`${enemy.name} moves to attack!`);
+      // Drop into the combat stance, facing the enemy.
+      if (SLS.AnimationManager) { SLS.AnimationManager.setFacing(1); SLS.AnimationManager.setContext("COMBAT"); }
       SLS.UI && SLS.UI.combat(this.cur);
     },
     push(html) { if (!this.cur) return; this.cur.log.unshift(html); if (this.cur.log.length > 30) this.cur.log.pop(); },
@@ -455,6 +457,8 @@
       const p = c.player;
       State.g.health = Math.max(1, Math.round(Math.max(0, p.hp)));
       State.g.chakra = Math.max(0, Math.round(p.cp));
+      // Low health after the fight puts the sprite into the injured state.
+      if (SLS.AnimationManager) SLS.AnimationManager.setInjured(State.g.health < State.g.char.maxHealth * 0.3);
       if (!win) State.damage(0);
       this.push(win ? '<span class="crit">Victory!</span>' : "You were beaten down…");
       SLS.UI && SLS.UI.combat(c);

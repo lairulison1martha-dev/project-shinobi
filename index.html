@@ -1,16 +1,18 @@
 <!--
-  Shinobi Life Simulator — visual 2D life sim
-  Screens: loading → character creation → game shell (scene + tabs)
-  Logic: data.js · sprite.js · core.js · systems.js · world.js ·
-         minigames.js · ui.js      Styling: style.css
-  No external dependencies, no image URLs — all art is procedural SVG.
+  Shinobi Life Simulator — 2D shinobi dashboard
+  Layout follows the approved mockup: top resource bar, left profile /
+  stats / rank column, centre character stage with equipment + bloodline
+  + nature cards and quick-jutsu bar, right parchment animation panel,
+  bottom actions, year card and icon navigation.
+
+  Modules: data · pixelsprite · sprite · core · systems · world ·
+           minigames · animation · ui
 -->
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="description" content="Shinobi Life Simulator — live a ninja's life from newborn to legend." />
 <title>Shinobi Life Simulator</title>
 
-<!-- PWA / iOS home-screen support -->
 <meta name="theme-color" content="#0b0d10" />
 <meta name="color-scheme" content="dark" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -20,60 +22,46 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="icon-180.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-
 <link rel="stylesheet" href="style.css" />
 
 <div id="backdrop" aria-hidden="true"></div>
 
-<!-- ============================================================= -->
-<!-- LOADING SCREEN                                                 -->
-<!-- ============================================================= -->
+<!-- ============================ LOADING ============================ -->
 <section id="screen-loading" class="screen loading-screen active">
   <div class="load-wrap">
-    <!-- Animated village seal: rotating ring + brush stroke + shuriken -->
     <div class="load-seal" aria-hidden="true">
       <svg viewBox="0 0 200 200">
-        <circle class="seal-ring" cx="100" cy="100" r="88" fill="none" stroke="#d9a441" stroke-width="2"
-                stroke-dasharray="10 14" opacity="0.7"/>
-        <circle class="seal-ring rev" cx="100" cy="100" r="72" fill="none" stroke="#e23b3b" stroke-width="1.5"
-                stroke-dasharray="4 10" opacity="0.6"/>
-        <path class="seal-brush" d="M46 118 q54 -46 108 -12" stroke="#e8ddc4" stroke-width="7"
-              fill="none" stroke-linecap="round" opacity="0.85"/>
+        <circle class="seal-ring" cx="100" cy="100" r="88" fill="none" stroke="#d9a441" stroke-width="2" stroke-dasharray="10 14" opacity="0.7"/>
+        <circle class="seal-ring rev" cx="100" cy="100" r="72" fill="none" stroke="#e23b3b" stroke-width="1.5" stroke-dasharray="4 10" opacity="0.6"/>
+        <path class="seal-brush" d="M46 118 q54 -46 108 -12" stroke="#e8ddc4" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.85"/>
         <g class="seal-star">
-          <path d="M100 44 L112 88 L156 100 L112 112 L100 156 L88 112 L44 100 L88 88 Z"
-                fill="#d9a441" stroke="#5c3f12" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M100 44 L112 88 L156 100 L112 112 L100 156 L88 112 L44 100 L88 88 Z" fill="#d9a441" stroke="#5c3f12" stroke-width="2" stroke-linejoin="round"/>
           <circle cx="100" cy="100" r="13" fill="#0b0d10"/>
           <circle cx="100" cy="100" r="13" fill="none" stroke="#f0c877" stroke-width="3"/>
         </g>
       </svg>
-      <!-- drifting leaves -->
       <span class="leaf l1">🍃</span><span class="leaf l2">🍃</span><span class="leaf l3">🍃</span>
     </div>
-
     <h1 class="load-title">忍 Shinobi Life Simulator</h1>
     <p class="load-msg" id="load-msg">Preparing the village…</p>
     <div class="load-bar"><div class="load-bar-fill" id="load-bar-fill"></div></div>
   </div>
 </section>
 
-<!-- ============================================================= -->
-<!-- CHARACTER CREATION                                             -->
-<!-- ============================================================= -->
+<!-- ========================= CHARACTER CREATION ==================== -->
 <section id="screen-creation" class="screen">
   <div class="creation-wrap">
     <header class="title-block">
       <h1 class="game-title">忍 Shinobi Life Simulator</h1>
       <p class="game-subtitle">Born in shadow. Forge your legend.</p>
     </header>
-
     <div class="creation-grid">
-      <div class="panel creation-panel">
+      <div class="panel ink-panel creation-panel">
         <h2 class="panel-title">Choose Your Hidden Village</h2>
         <p class="section-note">Your village decides your clans, your nature, and your enemies.</p>
         <div id="village-select" class="village-grid"></div>
       </div>
-
-      <div class="panel creation-panel">
+      <div class="panel ink-panel creation-panel">
         <div class="row-between">
           <h2 class="panel-title">Your Newborn</h2>
           <div class="chip-row">
@@ -81,100 +69,195 @@
             <button id="btn-reroll" class="btn btn-ghost btn-sm" type="button">🎲 Re-roll</button>
           </div>
         </div>
-
         <div class="creation-sprite" id="creation-sprite"></div>
-
         <label class="field">
           <span class="field-label">Name</span>
           <input id="input-name" class="text-input" type="text" maxlength="24" placeholder="Enter a name…" />
         </label>
-
         <div id="creation-preview" class="creation-preview"></div>
-
         <div class="field">
           <span class="field-label">Difficulty</span>
           <div id="difficulty-select" class="chip-row"></div>
           <p class="section-note" id="diff-note"></p>
         </div>
-
-        <button id="btn-begin" class="btn btn-primary btn-block" type="button" disabled>Be Born</button>
+        <button id="btn-begin" class="btn btn-gold btn-block" type="button" disabled>Be Born</button>
         <p class="hint" id="begin-hint">Select a village to continue.</p>
       </div>
     </div>
-    <p class="version-tag">v2.0 · autosaves to your browser</p>
+    <p class="version-tag">v3.0 · autosaves to your browser</p>
   </div>
 </section>
 
-<!-- ============================================================= -->
-<!-- GAME SHELL                                                     -->
-<!-- ============================================================= -->
+<!-- ============================== GAME ============================= -->
 <section id="screen-game" class="screen">
-  <header id="hud" class="hud">
-    <div class="hud-identity">
-      <div id="hud-crest" class="crest">忍</div>
-      <div class="hud-names">
-        <div id="hud-name" class="hud-name">—</div>
-        <div id="hud-sub" class="hud-sub">—</div>
+
+  <!-- ---------------- TOP RESOURCE BAR ---------------- -->
+  <header id="topbar" class="topbar">
+    <div class="tb-identity">
+      <div class="tb-portrait" id="tb-portrait"></div>
+      <div class="tb-idblock">
+        <div class="tb-name"><span id="tb-clan">—</span> <i>•</i> <span id="tb-rank">—</span></div>
+        <div class="tb-exp">
+          <span class="tb-exp-label">EXP</span>
+          <div class="xp-bar"><i id="tb-exp-fill"></i></div>
+          <span class="tb-exp-num" id="tb-exp-num">0 / 0</span>
+        </div>
+      </div>
+      <div class="tb-lvl">LVL <b id="tb-level">1</b></div>
+    </div>
+
+    <div class="tb-village">
+      <span class="tb-village-crest" id="tb-crest">🍃</span>
+      <span class="tb-village-text">
+        <b id="tb-village">—</b>
+        <em id="tb-country">—</em>
+      </span>
+    </div>
+
+    <div class="tb-res">
+      <div class="res-item">
+        <span class="res-ico stam">⚡</span>
+        <span class="res-body"><span class="res-label">STAMINA</span>
+          <span class="res-val" id="tb-stam">0 / 0</span>
+          <div class="res-bar"><i id="tb-stam-fill" class="stamina"></i></div></span>
+      </div>
+      <div class="res-item">
+        <span class="res-ico ryo">🪙</span>
+        <span class="res-body"><span class="res-label">RYO</span><span class="res-val" id="tb-ryo">0</span></span>
+      </div>
+      <div class="res-item">
+        <span class="res-ico pres">◈</span>
+        <span class="res-body"><span class="res-label">PRESTIGE</span><span class="res-val" id="tb-prestige">0</span></span>
       </div>
     </div>
-    <div class="hud-bars">
-      <div class="bar-group"><span class="bar-label">Health</span><div class="bar"><div id="bar-health" class="bar-fill health"></div></div></div>
-      <div class="bar-group"><span class="bar-label">Chakra</span><div class="bar"><div id="bar-chakra" class="bar-fill chakra"></div></div></div>
-      <div class="bar-group"><span class="bar-label">Stamina</span><div class="bar"><div id="bar-stamina" class="bar-fill stamina"></div></div></div>
-    </div>
-    <div class="hud-meta">
-      <div class="meta-chip" title="Age"><span>🎂</span><span id="hud-age">0</span></div>
-      <div class="meta-chip" title="Level"><span>⭐</span><span id="hud-level">1</span></div>
-      <div class="meta-chip" title="Ryo"><span>💰</span><span id="hud-wealth">0</span></div>
-      <div class="meta-chip" title="Fame"><span>🔥</span><span id="hud-fame">0</span></div>
-    </div>
+
+    <button class="tb-settings" id="tb-settings" type="button" title="Settings">⚙</button>
   </header>
 
-  <!-- Permanent 2D character scene -->
-  <div id="char-scene" class="char-scene"></div>
+  <!-- ---------------- MAIN GRID ---------------- -->
+  <div id="dash" class="dash">
 
-  <nav id="tabs" class="tabs" role="tablist">
-    <button class="tab active" data-tab="character" role="tab">Character</button>
-    <button class="tab" data-tab="actions" role="tab">Actions</button>
-    <button class="tab" data-tab="stats" role="tab">Stats</button>
-    <button class="tab" data-tab="missions" role="tab">Missions</button>
-    <button class="tab" data-tab="techniques" role="tab">Techniques</button>
-    <button class="tab" data-tab="bonds" role="tab">Bonds</button>
-    <button class="tab" data-tab="summons" role="tab">Summons</button>
-    <button class="tab" data-tab="inventory" role="tab">Inventory</button>
-    <button class="tab" data-tab="market" role="tab">Market</button>
-    <button class="tab" data-tab="village" role="tab">Village</button>
-    <button class="tab" data-tab="timeline" role="tab">Timeline</button>
-    <button class="tab" data-tab="journal" role="tab">Journal</button>
-    <button class="tab" data-tab="settings" role="tab">Settings</button>
+    <!-- ======= LEFT COLUMN ======= -->
+    <aside class="col-left">
+      <section class="panel ink-panel">
+        <h3 class="brush-title">PROFILE</h3>
+        <div class="profile-row">
+          <div class="profile-portrait" id="profile-portrait"></div>
+          <dl class="profile-list" id="profile-list"></dl>
+        </div>
+        <div class="clan-crest" id="clan-crest"></div>
+      </section>
+
+      <section class="panel ink-panel">
+        <h3 class="brush-title">STATS</h3>
+        <div id="stats-list" class="stats-list"></div>
+      </section>
+
+      <section class="panel ink-panel">
+        <h3 class="brush-title">RANK PROGRESS</h3>
+        <div id="rank-track" class="rank-track"></div>
+        <div class="rank-exam">
+          <span class="rank-exam-label">NEXT EXAM:</span>
+          <span id="rank-exam-name">—</span>
+          <div class="rank-exam-bar"><i id="rank-exam-fill"></i></div>
+          <span id="rank-exam-pct">0%</span>
+        </div>
+      </section>
+    </aside>
+
+    <!-- ======= CENTRE STAGE ======= -->
+    <main class="col-centre">
+      <nav id="stage-tabs" class="stage-tabs" role="tablist">
+        <button class="stab active" data-tab="overview" role="tab">OVERVIEW</button>
+        <button class="stab" data-tab="abilities" role="tab">ABILITIES</button>
+        <button class="stab" data-tab="inventory" role="tab">INVENTORY</button>
+        <button class="stab" data-tab="missions" role="tab">MISSIONS</button>
+        <button class="stab" data-tab="bonds" role="tab">BONDS</button>
+        <button class="stab" data-tab="records" role="tab">RECORDS</button>
+      </nav>
+
+      <!-- OVERVIEW: the character stage -->
+      <div id="view-overview" class="stage-view active">
+        <div class="stage-wrap">
+          <div id="char-stage" class="char-stage">
+            <div class="stage-bg" id="stage-bg"></div>
+            <canvas id="char-canvas" width="128" height="168" aria-label="Your shinobi"></canvas>
+            <div class="stage-flash" id="stage-flash"></div>
+            <div class="stage-wipe" id="stage-wipe"></div>
+            <div class="stage-label" id="stage-label">Village Overlook</div>
+            <div class="anim-badge" id="anim-badge">IDLE</div>
+            <div class="jin-mini" id="jin-mini"></div>
+          </div>
+
+          <!-- overlays: floating on desktop, a normal row under the scene on phones -->
+          <div class="stage-overlays">
+            <div class="eq-stack" id="eq-stack">
+              <div class="eq-head">EQUIPMENT</div>
+              <div class="eq-slots" id="eq-slots"></div>
+            </div>
+            <div class="side-cards">
+              <div class="mini-card" id="card-bloodline"></div>
+              <div class="mini-card" id="card-nature"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- phone-only identity + vitals directly under the hero -->
+        <div class="m-identity" id="m-identity"></div>
+        <div class="m-vitals" id="m-vitals"></div>
+
+        <div class="quick-jutsu">
+          <div class="qj-head">QUICK JUTSU</div>
+          <div class="qj-slots" id="qj-slots"></div>
+        </div>
+      </div>
+
+      <div id="view-abilities" class="stage-view"></div>
+      <div id="view-inventory" class="stage-view"></div>
+      <div id="view-missions" class="stage-view"></div>
+      <div id="view-bonds" class="stage-view"></div>
+      <div id="view-records" class="stage-view"></div>
+    </main>
+
+    <!-- ======= RIGHT: ANIMATION PARCHMENT ======= -->
+    <aside class="col-right">
+      <details class="anim-collapse" id="anim-collapse">
+        <summary id="anim-summary">ANIMATIONS</summary>
+        <section class="parchment anim-panel">
+          <h3 class="parch-title">ANIMATIONS</h3>
+          <div id="anim-strips" class="anim-strips"></div>
+        </section>
+        <div class="anim-legend" id="anim-legend"></div>
+      </details>
+    </aside>
+  </div>
+
+  <!-- ---------------- ACTIONS + YEAR ---------------- -->
+  <div class="action-zone">
+    <section class="actions-block">
+      <h3 class="brush-title small">ACTIONS <span class="dim">(STAMINA COST)</span></h3>
+      <div id="action-bar" class="action-bar"></div>
+    </section>
+
+    <section class="parchment year-card">
+      <div class="year-head"><span id="year-season-ico">🌸</span> <span id="year-label">Year 0 • Spring</span></div>
+      <button id="btn-advance" class="advance-btn" type="button">ADVANCE YEAR</button>
+      <p class="year-note" id="year-note">Recover stamina &amp; chakra · trigger events</p>
+      <button id="btn-deage" class="deage-btn" type="button">↺ De-Age One Year</button>
+    </section>
+  </div>
+
+  <!-- ---------------- BOTTOM NAVIGATION ---------------- -->
+  <nav id="bottom-nav" class="bottom-nav">
+    <button class="nav-btn active" data-nav="home" type="button"><span class="nav-ico">◎</span><span class="nav-label">HOME</span></button>
+    <button class="nav-btn" data-nav="character" type="button"><span class="nav-ico">👤</span><span class="nav-label">CHARACTER</span></button>
+    <button class="nav-btn" data-nav="team" type="button"><span class="nav-ico">👥</span><span class="nav-label">TEAM</span></button>
+    <button class="nav-btn" data-nav="academy" type="button"><span class="nav-ico">🏫</span><span class="nav-label">ACADEMY</span></button>
+    <button class="nav-btn" data-nav="map" type="button"><span class="nav-ico">🗺</span><span class="nav-label">MAP</span></button>
+    <button class="nav-btn" data-nav="shop" type="button"><span class="nav-ico">💰</span><span class="nav-label">SHOP</span></button>
+    <button class="nav-btn" data-nav="summons" type="button"><span class="nav-ico">◉</span><span class="nav-label">SUMMONS</span></button>
+    <button class="nav-btn" data-nav="settings" type="button"><span class="nav-ico">⚙</span><span class="nav-label">SETTINGS</span></button>
   </nav>
-
-  <main id="panels" class="panels">
-    <div id="panel-character" class="panel-view active"></div>
-    <div id="panel-actions" class="panel-view"></div>
-    <div id="panel-stats" class="panel-view"></div>
-    <div id="panel-missions" class="panel-view"></div>
-    <div id="panel-techniques" class="panel-view"></div>
-    <div id="panel-bonds" class="panel-view"></div>
-    <div id="panel-summons" class="panel-view"></div>
-    <div id="panel-inventory" class="panel-view"></div>
-    <div id="panel-market" class="panel-view"></div>
-    <div id="panel-village" class="panel-view"></div>
-    <div id="panel-timeline" class="panel-view"></div>
-    <div id="panel-journal" class="panel-view"></div>
-    <div id="panel-settings" class="panel-view"></div>
-  </main>
-
-  <footer id="year-bar" class="year-bar">
-    <div class="year-info">
-      <span id="year-stage" class="year-stage">Age 0 · Newborn</span>
-      <span id="year-hint" class="year-hint">Choose activities, then advance the year.</span>
-    </div>
-    <div class="year-actions">
-      <button id="btn-deage" class="btn btn-ghost" type="button" title="Turn back one year">↺ De-Age</button>
-      <button id="btn-advance" class="btn btn-primary" type="button">Advance Year ▸</button>
-    </div>
-  </footer>
 </section>
 
 <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
@@ -183,9 +266,11 @@
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
 <script defer src="data.js"></script>
+<script defer src="pixelsprite.js"></script>
 <script defer src="sprite.js"></script>
 <script defer src="core.js"></script>
 <script defer src="systems.js"></script>
 <script defer src="world.js"></script>
 <script defer src="minigames.js"></script>
+<script defer src="animation.js"></script>
 <script defer src="ui.js"></script>

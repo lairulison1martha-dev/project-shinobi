@@ -100,6 +100,41 @@ positions, summoning contracts found in the world, 90+ achievements with hidden 
 entries, eight endings, dynamic scenes with ink/leaf/smoke/scroll transitions, and a
 full timeline and journal.
 
+
+## Visual dashboard (v3)
+
+The UI follows an approved 2D shinobi dashboard mockup and is **mobile-first** —
+there is no fixed desktop canvas, no `transform: scale`, and no zoom-to-fit. The
+layout is fluid CSS grid/flexbox with `clamp()` sizing, `100dvh`, safe-area
+insets and no horizontal overflow at any width.
+
+**Portrait phone order:** top resource bar → character scene → equipment /
+bloodline / nature → identity → health-chakra-stamina → quick jutsu → profile →
+stats → rank → animation gallery (collapsible) → sticky bottom navigation.
+
+**Breakpoints:** single column < 700px · two columns ≥ 700px · the full
+three-column dashboard ≥ 1080px · condensed columns in landscape.
+
+The character is the visual hero: roughly **32% of viewport height on phones**
+and **41% on desktop**, never shrunk to make room for panels.
+
+### Pixel-art sprite system (`pixelsprite.js`)
+
+A parametric pixel-art shinobi drawn to canvas at runtime — no external images.
+Chibi proportions with a large spiky-haired head, headband, high collar and
+scarf, clan mark, sleeve/forearm wraps, gloves, shin wraps and sandals, plus the
+katana across the back. Nine animation states (idle, walk, run, combat, attack,
+jutsu, jump, injured, dead) exist for every age stage, driven by joint angles
+rather than hand-drawn cells. Dojutsu render as layered eye overlays that keep
+the animation frames intact.
+
+### Animation controller (`animation.js`)
+
+A single `requestAnimationFrame` loop that pauses when the tab is hidden or the
+stage scrolls out of view. `AnimationManager` owns state transitions, queueing,
+interrupt rules, facing, idle variations, the inactivity jump, and hit-frame
+effect sync — gameplay code only calls `setState`/`playOnce`/`setContext`.
+
 ## Running
 
 Open `index.html` directly — everything works offline from the file system.

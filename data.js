@@ -257,6 +257,7 @@
      SCENES — original CSS/SVG backdrops (no external images).
      --------------------------------------------------------------- */
   C.scenes = {
+    overlook:  { name: "Village Overlook", sky: ["#5aa0d8", "#a9d2ea"], ground: "#6a5a3a", props: "overlook", day: true },
     home:      { name: "Family Home",     sky: ["#2a1f18", "#181310"], ground: "#3a2a1e", props: "home" },
     village:   { name: "Village Street",  sky: ["#243044", "#141a26"], ground: "#2b2f3a", props: "village" },
     classroom: { name: "Academy Classroom", sky: ["#2b2418", "#191510"], ground: "#3c3122", props: "classroom" },

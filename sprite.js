@@ -395,7 +395,8 @@
   Sprite.scene = function (id, opts) {
     opts = opts || {};
     const s = C.scenes[id] || C.scenes.village;
-    const night = !!opts.night;
+    // Daylight scenes (the village overlook) never darken all the way to night.
+    const night = !!opts.night && !s.day;
     const sky0 = night ? shade(s.sky[0], -14) : s.sky[0];
     const sky1 = night ? shade(s.sky[1], -10) : s.sky[1];
     const gid = "sky_" + id;
@@ -409,6 +410,45 @@
     }).join("");
 
     switch (s.props) {
+      case "overlook":
+        // Daylight village seen from a hillside path: monument cliff, rooftops, trees.
+        props = `
+          <ellipse cx="60" cy="26" rx="26" ry="10" fill="#fff" opacity="0.55"/>
+          <ellipse cx="200" cy="18" rx="32" ry="11" fill="#fff" opacity="0.45"/>
+          <path d="M0 96 L54 44 L106 96z" fill="#6d7f8c"/>
+          <path d="M78 96 L140 34 L202 96z" fill="#7d8e9a"/>
+          <path d="M170 96 L226 46 L282 96z" fill="#6d7f8c"/>
+          <!-- monument: a carved cliff face with weathered stone heads -->
+          <path d="M92 88 L96 46 L214 44 L218 88z" fill="#7c8994"/>
+          <path d="M92 88 L96 46 L120 46 L116 88z" fill="#8d99a4" opacity="0.7"/>
+          ${[0,1,2,3].map(i => `<g transform="translate(${101 + i*29},50)">
+            <path d="M2 34 L1 12 Q11 3 21 12 L20 34z" fill="#93a0ab"/>
+            <path d="M1 12 Q11 3 21 12 L21 16 Q11 9 1 16z" fill="#6e7b87"/>
+            <rect x="5" y="18" width="4" height="2" fill="#57636e"/>
+            <rect x="13" y="18" width="4" height="2" fill="#57636e"/>
+            <rect x="9" y="24" width="4" height="2" fill="#6b7681" opacity="0.8"/>
+          </g>`).join("")}
+          <rect x="92" y="86" width="126" height="3" fill="#5f6b76"/>
+          <!-- village rooftops: a dense far row, then a nearer row -->
+          ${[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>{
+            const x = 4 + i*25, h = 14 + (i%3)*5, y = 118 - h;
+            const col = ["#8c5a3c","#a06a44","#7a4d34"][i%3];
+            return `<rect x="${x}" y="${y}" width="19" height="${h}" fill="#c3b092" opacity="0.85"/>
+                    <path d="M${x-3} ${y} L${x+9.5} ${y-8} L${x+22} ${y}z" fill="${col}" opacity="0.85"/>`;
+          }).join("")}
+          ${[0,1,2,3,4,5,6,7].map(i=>{
+            const x = 2 + i*38, h = 22 + (i%3)*7, y = 146 - h;
+            const col = ["#7d4d33","#96603e","#6c422c"][i%3];
+            return `<rect x="${x}" y="${y}" width="28" height="${h}" fill="#cbb89a"/>
+                    <path d="M${x-4} ${y} L${x+14} ${y-11} L${x+32} ${y}z" fill="${col}"/>
+                    <rect x="${x+7}" y="${y+8}" width="7" height="8" fill="#46566a" opacity="0.75"/>
+                    <rect x="${x+18}" y="${y+8}" width="5" height="8" fill="#46566a" opacity="0.6"/>`;
+          }).join("")}
+          <!-- foreground foliage framing -->
+          <path d="M0 0 q34 26 18 58 q-12 -22 -34 -30z" fill="#2c4a2a" opacity="0.9"/>
+          <path d="M300 0 q-40 22 -22 62 q14 -26 38 -34z" fill="#25401f" opacity="0.9"/>
+          <ellipse cx="150" cy="152" rx="120" ry="12" fill="#7a6a46" opacity="0.7"/>`;
+        break;
       case "home":
         props = `<rect x="26" y="86" width="96" height="62" fill="#3a2b20"/>
           <path d="M18 88 L74 54 L130 88z" fill="#4a3527"/>
