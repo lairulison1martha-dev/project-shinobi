@@ -1,0 +1,677 @@
+{
+ "newborn": {
+  "sheet": "assets/characters/newborn/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "injured": {
+    "row": 1,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 2,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "toddler": {
+  "sheet": "assets/characters/toddler/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "jump": {
+    "row": 2,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 3,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 4,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "child": {
+  "sheet": "assets/characters/child/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "run": {
+    "row": 2,
+    "frames": 6,
+    "dur": 95,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "jump": {
+    "row": 3,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 4,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 5,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "academy": {
+  "sheet": "assets/characters/academy/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "run": {
+    "row": 2,
+    "frames": 6,
+    "dur": 95,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "combat": {
+    "row": 3,
+    "frames": 4,
+    "dur": 220,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "attack": {
+    "row": 4,
+    "frames": 6,
+    "dur": 80,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 3,
+    "interruptible": false
+   },
+   "jutsu": {
+    "row": 5,
+    "frames": 7,
+    "dur": 110,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 6,
+    "interruptible": false
+   },
+   "jump": {
+    "row": 6,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 7,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 8,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "genin": {
+  "sheet": "assets/characters/genin/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "run": {
+    "row": 2,
+    "frames": 6,
+    "dur": 95,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "combat": {
+    "row": 3,
+    "frames": 4,
+    "dur": 220,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "attack": {
+    "row": 4,
+    "frames": 6,
+    "dur": 80,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 3,
+    "interruptible": false
+   },
+   "jutsu": {
+    "row": 5,
+    "frames": 7,
+    "dur": 110,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 6,
+    "interruptible": false
+   },
+   "jump": {
+    "row": 6,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 7,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 8,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "teen": {
+  "sheet": "assets/characters/teen/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "run": {
+    "row": 2,
+    "frames": 6,
+    "dur": 95,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "combat": {
+    "row": 3,
+    "frames": 4,
+    "dur": 220,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "attack": {
+    "row": 4,
+    "frames": 6,
+    "dur": 80,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 3,
+    "interruptible": false
+   },
+   "jutsu": {
+    "row": 5,
+    "frames": 7,
+    "dur": 110,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 6,
+    "interruptible": false
+   },
+   "jump": {
+    "row": 6,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 7,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 8,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "adult": {
+  "sheet": "assets/characters/adult/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "run": {
+    "row": 2,
+    "frames": 6,
+    "dur": 95,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "combat": {
+    "row": 3,
+    "frames": 4,
+    "dur": 220,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "attack": {
+    "row": 4,
+    "frames": 6,
+    "dur": 80,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 3,
+    "interruptible": false
+   },
+   "jutsu": {
+    "row": 5,
+    "frames": 7,
+    "dur": 110,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 6,
+    "interruptible": false
+   },
+   "jump": {
+    "row": 6,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 7,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 8,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "veteran": {
+  "sheet": "assets/characters/veteran/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "run": {
+    "row": 2,
+    "frames": 6,
+    "dur": 95,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "combat": {
+    "row": 3,
+    "frames": 4,
+    "dur": 220,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "attack": {
+    "row": 4,
+    "frames": 6,
+    "dur": 80,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 3,
+    "interruptible": false
+   },
+   "jutsu": {
+    "row": 5,
+    "frames": 7,
+    "dur": 110,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 6,
+    "interruptible": false
+   },
+   "jump": {
+    "row": 6,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 7,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 8,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ },
+ "elder": {
+  "sheet": "assets/characters/elder/base.png",
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "rows": {
+   "idle": {
+    "row": 0,
+    "frames": 4,
+    "dur": 260,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "walk": {
+    "row": 1,
+    "frames": 6,
+    "dur": 130,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "run": {
+    "row": 2,
+    "frames": 6,
+    "dur": 95,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "combat": {
+    "row": 3,
+    "frames": 4,
+    "dur": 220,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "attack": {
+    "row": 4,
+    "frames": 6,
+    "dur": 80,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 3,
+    "interruptible": false
+   },
+   "jutsu": {
+    "row": 5,
+    "frames": 7,
+    "dur": 110,
+    "loop": false,
+    "next": "combat",
+    "hitFrame": 6,
+    "interruptible": false
+   },
+   "jump": {
+    "row": 6,
+    "frames": 5,
+    "dur": 120,
+    "loop": false,
+    "next": "idle",
+    "hitFrame": null,
+    "interruptible": false
+   },
+   "injured": {
+    "row": 7,
+    "frames": 3,
+    "dur": 420,
+    "loop": true,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": true
+   },
+   "dead": {
+    "row": 8,
+    "frames": 1,
+    "dur": 999999,
+    "loop": false,
+    "next": null,
+    "hitFrame": null,
+    "interruptible": false
+   }
+  }
+ }
+}

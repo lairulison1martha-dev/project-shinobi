@@ -66,6 +66,7 @@
 
     /* ---- effect hooks ---- */
     effectListeners: [],
+    onFrame: null,          // FX rides this single loop; no second rAF
 
     /* =============================================================
        SETUP
@@ -119,6 +120,7 @@
       this.variation = null;
       if (opts.facing !== undefined) this.facing = opts.facing;
       this.onComplete = opts.onComplete || null;
+      this.frameAudio(PX.states[legal] || {});     // frame-0 cue (e.g. jutsu charge)
       return true;
     },
 
@@ -130,6 +132,7 @@
       this.elapsed = 0;
       this.variation = null;
       this.onComplete = onComplete || null;
+      this.frameAudio(PX.states[legal] || {});     // frame-0 cue (e.g. jutsu charge)
       return true;
     },
 
@@ -228,14 +231,36 @@
             if (cb) cb();
           }
         }
-        // hit-frame effect sync
+        // Frame-synchronised effects and audio.
         if (def.hitFrame != null && this.frame === def.hitFrame) {
           this._emit(this.state === "attack" ? "hit" : "release", { state: this.state, frame: this.frame });
         }
+        this.frameAudio(def);
       }
 
       this.render();
+      if (this.onFrame) this.onFrame(dt);
     },
+
+    /* Footsteps land on contact frames, not on button press. */
+    frameAudio(def) {
+      const AU = SLS.AudioManager; if (!AU || !AU.unlocked) return;
+      const st = this.state, f = this.frame;
+      if (st === "walk" && (f === 0 || f === 3)) AU.playSFX(this.stepSound(), { volume: 0.5, rate: 0.95 + Math.random() * 0.1 });
+      else if (st === "run" && (f === 0 || f === 3)) AU.playSFX(this.stepSound(), { volume: 0.65, rate: 1.05 + Math.random() * 0.1 });
+      else if (st === "jump" && f === 1) AU.playSFX("jump", { volume: 0.6 });
+      else if (st === "jump" && f === 4) AU.playSFX("land", { volume: 0.6 });
+      else if (st === "attack" && f === 1) AU.playSFX("swing", { volume: 0.6 });
+      else if (st === "attack" && f === (def.hitFrame || 3)) AU.playSFX(this.equipment.weapon ? "swordHit" : "punch", { volume: 0.75 });
+      else if (st === "jutsu" && f === 0) AU.playSFX("charge", { volume: 0.5 });
+      else if (st === "jutsu" && f === (def.hitFrame || 6)) AU.playSFX(this.jutsuSound, { volume: 0.8 });
+    },
+    stepSound() {
+      const s = this.sceneSurface;
+      return s === "wood" ? "stepWood" : s === "dirt" ? "stepDirt" : "stepGrass";
+    },
+    sceneSurface: "grass",
+    jutsuSound: "fire",
 
     /* `next: "combat"` means combat if we're fighting, otherwise idle. */
     resolveNext(next) {
@@ -266,12 +291,42 @@
     },
 
     /* =============================================================
-       RENDER
+       RENDER — sprite sheet first, procedural fallback second
        ============================================================= */
+    sheetFor(stage) {
+      const A = SLS.Assets; if (!A) return null;
+      const folder = A.stageFolder[stage];
+      const def = folder && A.characters[folder];
+      if (!def) return null;
+      const img = A.load(def.sheet);
+      return (img && img.__ready && !img.__failed) ? { def, img } : null;
+    },
+
     render() {
       const ctx = this.ctx; if (!ctx) return;
       const c = this.canvas;
       ctx.clearRect(0, 0, c.width, c.height);
+
+      // --- preferred path: blit the frame from the character atlas ---
+      const sheet = this.variation ? null : this.sheetFor(this.stage);
+      const row = sheet && sheet.def.rows[this.state];
+      if (sheet && row) {
+        const fw = sheet.def.frameWidth, fh = sheet.def.frameHeight;
+        const f = Math.min(this.frame, row.frames - 1);
+        const sx = f * fw, sy = row.row * fh;
+        const scale = Math.min(c.width / fw, c.height / fh);
+        const dw = fw * scale, dh = fh * scale;
+        const dx = (c.width - dw) / 2, dy = c.height - dh;   // anchor 0.5 / 1.0
+        ctx.save();
+        if (this.facing === -1) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(sheet.img, sx, sy, fw, fh, dx, dy, dw, dh);
+        ctx.restore();
+        this.drawOverlays(ctx, c, dx, dy, dw, dh);
+        return;
+      }
+
+      // --- fallback: procedural renderer (also used for idle variations) ---
       const p = this.variation
         ? this.variationFrames[Math.min(this.frame, this.variationFrames.length - 1)]
         : PX.poseFor(this.state, this.frame, this);
@@ -291,6 +346,34 @@
         hairColor: this.hairColor, skinTone: this.skinTone, clanMark: this.clanMark,
         prone: this.state === "dead"
       });
+    },
+
+    /* Layers that sit on top of the atlas frame: chakra aura, beast cloak
+       and the dojutsu glow. Kept as overlays so equipment changes never
+       swap the whole character image. */
+    drawOverlays(ctx, c, dx, dy, dw, dh) {
+      const cx = dx + dw / 2;
+      if (this.natureAura && this.natureColor) {
+        ctx.save(); ctx.globalAlpha = 0.14; ctx.fillStyle = this.natureColor;
+        ctx.beginPath(); ctx.ellipse(cx, dy + dh * 0.58, dw * 0.30, dh * 0.34, 0, 0, 6.283); ctx.fill();
+        ctx.restore();
+      }
+      if (this.cloak && this.cloakColor) {
+        ctx.save(); ctx.globalAlpha = 0.30; ctx.fillStyle = this.cloakColor;
+        ctx.beginPath(); ctx.ellipse(cx, dy + dh * 0.55, dw * 0.38, dh * 0.44, 0, 0, 6.283); ctx.fill();
+        ctx.restore();
+      }
+      if (this.dojutsu) {
+        const col = this.dojutsu === "sharingan" ? "rgba(226,59,59,.30)"
+          : this.dojutsu === "byakugan" ? "rgba(224,232,246,.28)" : "rgba(150,90,220,.28)";
+        ctx.save(); ctx.globalAlpha = 1; ctx.fillStyle = col;
+        ctx.beginPath(); ctx.ellipse(cx, dy + dh * 0.17, dw * 0.13, dh * 0.055, 0, 0, 6.283); ctx.fill();
+        ctx.restore();
+      }
+      if (this.injured) {
+        ctx.save(); ctx.globalAlpha = 0.18; ctx.fillStyle = "#c62828";
+        ctx.fillRect(dx, dy, dw, dh); ctx.restore();
+      }
     },
 
     /* Force an immediate redraw (after equipment/dojutsu changes). */

@@ -818,3 +818,39 @@ button, input, select, textarea { font-family: inherit; }
   .toast { font-size: .84rem; padding: 9px 12px; }
   .toast .t-sub { font-size: .74rem; }
 }
+
+/* ---------------- FX + tap gate ---------------- */
+.fx-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+.char-stage.low-health::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  box-shadow: inset 0 0 60px 18px rgba(180,20,20,.45);
+  animation: pulseVig 1.6s ease-in-out infinite;
+}
+@keyframes pulseVig { 0%,100% { opacity: .55; } 50% { opacity: .95; } }
+
+.tap-gate {
+  position: fixed; inset: 0; z-index: 90; display: none;
+  place-items: center; text-align: center; cursor: pointer;
+  background: radial-gradient(circle at 50% 45%, #14181f, #05070a 70%);
+}
+.tap-gate.on { display: grid; }
+.tap-gate-inner { padding: 24px; }
+.tap-seal {
+  width: clamp(90px, 26vw, 130px); height: clamp(90px, 26vw, 130px); margin: 0 auto 20px;
+  display: grid; place-items: center; border-radius: 50%;
+  font-family: var(--serif); font-size: clamp(2.4rem, 9vw, 3.4rem); color: var(--gold-soft);
+  border: 2px solid var(--gold); background: radial-gradient(circle at 34% 30%, #2a1a12, #0b0d10);
+  box-shadow: 0 0 40px rgba(226,59,59,.35); animation: sealPulse 2.4s ease-in-out infinite;
+}
+.tap-title { font-size: clamp(1.15rem, 5.2vw, 1.7rem); color: var(--parchment); }
+.tap-sub { color: var(--muted); font-size: .92rem; margin-top: 8px; }
+
+/* audio settings sliders */
+.vol-row { display: grid; grid-template-columns: 96px 1fr 44px; gap: 10px; align-items: center; padding: 9px 0;
+  border-bottom: 1px dashed var(--ink-4); font-size: .84rem; }
+.vol-row input[type=range] { width: 100%; height: 30px; accent-color: var(--gold); }
+.vol-row b { text-align: right; }
+.bg-plate { position: absolute; inset: 0; background-size: cover; background-position: center bottom; image-rendering: auto; }
+.bg-weather { position: absolute; inset: 0; pointer-events: none; }
+.bg-weather.day { background: linear-gradient(180deg, rgba(255,240,200,.06), transparent 45%); }
+.bg-weather.night { background: linear-gradient(180deg, rgba(20,30,60,.30), rgba(8,10,20,.18)); }

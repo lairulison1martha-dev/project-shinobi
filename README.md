@@ -5,8 +5,8 @@ watch your character physically grow — through infancy, the Academy, Genin lif
 and old age — while your appearance changes to reflect your age, rank, clothing, weapon,
 bloodline, dojutsu, chakra nature, summons and Jinchuriki status.
 
-Runs entirely in the browser. No build step, no backend, no dependencies, no external
-images — every visual is procedurally generated SVG.
+Runs entirely in the browser. No build step, no backend, no dependencies, no remote
+URLs — all art and audio are generated originals stored under `assets/`.
 
 **To play: open `index.html` in any modern browser.** (Or serve the folder over HTTP to
 enable offline PWA install — see *Running* below.)
@@ -134,6 +134,32 @@ A single `requestAnimationFrame` loop that pauses when the tab is hidden or the
 stage scrolls out of view. `AnimationManager` owns state transitions, queueing,
 interrupt rules, facing, idle variations, the inactivity jump, and hit-frame
 effect sync — gameplay code only calls `setState`/`playOnce`/`setContext`.
+
+## Assets & audio (v4)
+
+`assets.js` is the single manifest for every path plus the sprite frame data
+(row, frame count, duration, loop, hit frame). Nothing else hard-codes a path.
+
+**Sprites** — nine PNG atlases (one per age stage) exported from the parametric
+pixel renderer, 192×256 cells. `animation.js` blits from the atlas and falls back
+to the procedural renderer if a sheet is missing, so the game never breaks.
+Aura, beast cloak, dojutsu glow and injury are drawn as overlays, so equipment
+changes never swap the character image.
+
+**Backgrounds** — 30 PNG plates (15 scenes × day/night) with a procedural
+atmosphere layer composited on top.
+
+**Audio** — `audio.js` is a Web Audio engine with master/music/ambience/SFX
+buses, crossfades, mute, persistence and tab-visibility pausing. Nothing
+autoplays: a **"Tap to enter the village"** gate performs the iOS unlock, then
+scene-mapped music and ambience start. 62 original clips: 12 music loops, 7
+ambience beds, 43 SFX. Sounds are frame-synced — footsteps on contact frames,
+sword on the swing frame, impact on the hit frame, jutsu on the release frame.
+
+**Effects** — `fx.js` pools 90 particles max and rides the single animation
+loop. Per-nature bursts, slash trails, impact sparks, screen shake, flashes,
+damage numbers and a low-health vignette, all respecting the accessibility
+switches.
 
 ## Running
 

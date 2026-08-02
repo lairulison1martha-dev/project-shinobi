@@ -182,6 +182,7 @@
           <div id="char-stage" class="char-stage">
             <div class="stage-bg" id="stage-bg"></div>
             <canvas id="char-canvas" width="128" height="168" aria-label="Your shinobi"></canvas>
+            <canvas id="fx-canvas" class="fx-canvas" width="320" height="240" aria-hidden="true"></canvas>
             <div class="stage-flash" id="stage-flash"></div>
             <div class="stage-wipe" id="stage-wipe"></div>
             <div class="stage-label" id="stage-label">Village Overlook</div>
@@ -260,11 +261,21 @@
   </nav>
 </section>
 
+<!-- iOS requires a real gesture before audio can start -->
+<div id="tap-gate" class="tap-gate" aria-hidden="true">
+  <div class="tap-gate-inner">
+    <div class="tap-seal">忍</div>
+    <h2 class="tap-title">Tap to enter the village</h2>
+    <p class="tap-sub">Enables music and sound</p>
+  </div>
+</div>
+
 <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
   <div id="modal" class="modal" role="dialog" aria-modal="true"><div id="modal-body" class="modal-body"></div></div>
 </div>
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
+<script defer src="assets.js"></script>
 <script defer src="data.js"></script>
 <script defer src="pixelsprite.js"></script>
 <script defer src="sprite.js"></script>
@@ -272,5 +283,7 @@
 <script defer src="systems.js"></script>
 <script defer src="world.js"></script>
 <script defer src="minigames.js"></script>
+<script defer src="audio.js"></script>
+<script defer src="fx.js"></script>
 <script defer src="animation.js"></script>
 <script defer src="ui.js"></script>

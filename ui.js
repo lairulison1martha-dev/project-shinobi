@@ -9,10 +9,14 @@
   const SLS = window.SLS;
   const { C, RNG, State, Save, Log, Rules, Gen, Snap, Sprite, PX, Relations, Personality,
           Academy, Techniques, Shop, Achievements, Endings, Dojutsu, Summons, Beasts,
-          Combat, Missions, Explore, Engine, Minigames, AnimationManager } = SLS;
+          Combat, Missions, Explore, Engine, Minigames, AnimationManager, Assets, FX } = SLS;
+  const AU = SLS.AudioManager;
   const AM = AnimationManager;
 
-  const Audio = { keys: ["click","levelup","hit","win","lose","unlock","coin","promote","event"], play() {} };
+  /* Legacy Audio.play(key) shim → real AudioManager sfx names. */
+  const KEYMAP = { click:"tap", levelup:"levelup", hit:"hit", win:"missionComplete",
+    lose:"defeat", unlock:"achievement", coin:"confirm", promote:"rankup", event:"open" };
+  const Audio = { play(k) { if (AU) AU.playSFX(KEYMAP[k] || k); } };
   SLS.Audio = Audio;
 
   const el = (id) => document.getElementById(id);
@@ -113,6 +117,9 @@
       const j = g.jinchuriki;
       AM.setCloak(j && j.cloak, j ? (C.beast(j.beastId) || {}).color : null);
       AM.setInjured(g.health < g.char.maxHealth * 0.3 && !g.flags.dead);
+      AM.sceneSurface = ({ classroom: "wood", home: "wood", cave: "dirt", mountain: "dirt",
+        range: "dirt", arena: "dirt" })[g.scene] || "grass";
+      if (FX) FX.lowHealth(g.health < g.char.maxHealth * 0.25 && !g.flags.dead);
       if (g.flags.dead) AM.setContext("DEAD");
       AM.refresh();
     },
@@ -159,11 +166,16 @@
     spriteCfg() {
       const g = State.g;
       const nat = g.char.natures[0];
+      // When the baked atlas is in use it carries one fixed colourway, so the
+      // portrait must match it rather than the character's rolled palette.
+      const baked = AM && AM.sheetFor && AM.sheetFor(g.stageId);
+      const hair = baked ? "#1e2740" : g.char.hairColor;
+      const skin = baked ? "#e8b489" : g.char.skin;
       return {
         stage: g.stageId, state: "idle", frame: 0,
         weapon: g.equipped.weapon, headband: !!g.academy.graduated,
         dojutsu: g.dojutsu && g.dojutsu.active && g.dojutsu.stage !== "none" ? g.dojutsu.type : null,
-        hairColor: g.char.hairColor, skinTone: g.char.skin, clanMark: g.char.clan !== "civilian",
+        hairColor: hair, skinTone: skin, clanMark: g.char.clan !== "civilian",
         natureColor: nat ? NAT(nat).color : null, effects: false
       };
     },
@@ -263,7 +275,23 @@
     renderStage() {
       const g = State.g; if (!g) return;
       const night = (g.age % 4) === 3;
-      el("stage-bg").innerHTML = Sprite.scene(g.scene || "overlook", { night });
+      const sceneId = g.scene || "overlook";
+      const bgDef = Assets && Assets.backgrounds[sceneId];
+      const url = bgDef && (night ? bgDef.night : bgDef.day);
+      // Re-render once the plate decodes so the first paint is not stuck on
+      // the procedural fallback.
+      const img = url && Assets.load(url, () => {
+        if (State.g && (State.g.scene || "overlook") === sceneId) this.renderStage();
+      });
+      if (img && img.__ready && !img.__failed) {
+        // Final art plate + a procedural atmosphere layer on top.
+        el("stage-bg").innerHTML = `<div class="bg-plate" style="background-image:url('${url}')"></div>`
+          + `<div class="bg-weather ${night ? "night" : "day"}"></div>`;
+      } else {
+        el("stage-bg").innerHTML = Sprite.scene(sceneId, { night });
+      }
+      if (Assets) Assets.preloadScene(sceneId, night);
+      if (AU) AU.setScene(sceneId, { night, combat: AM.context === "COMBAT" });
       el("stage-label").textContent = (C.scenes[g.scene] || C.scenes.overlook).name;
 
       // equipment stack
@@ -364,6 +392,8 @@
       g.techMastery[id] = Math.min(100, (g.techMastery[id] || 0) + RNG.randInt(2, 5));
       if (t.element) State.gainElement(t.element, 2);
       State.gainStat(t.gate, 0.3); State.gainXP(6);
+      const nat = t.element || g.char.natures[0];
+      AM.jutsuSound = (Assets && Assets.natureFx[nat] ? Assets.natureFx[nat].sfx : "fire");
       AM.playOnce("jutsu", () => AM.returnToDefault());
       this.flashScene("gold");
       Log.line(`Practised ${t.name}.`, "");
@@ -503,6 +533,7 @@
     },
 
     navTo(nav) {
+      if (AU) AU.playSFX("open");
       this.nav = nav;
       document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.nav === nav));
       const map = { home: "overview", team: "bonds", missions: "missions" };
@@ -780,6 +811,23 @@
       return `<div class="panel ink-panel"><h3 class="brush-title">SETTINGS</h3>
           ${sw("autosave","Autosave")}${sw("sound","Sound","ready for future audio")}${sw("reducedFX","Reduced motion")}
         </div>
+        <div class="panel ink-panel"><h3 class="brush-title">AUDIO</h3>
+          ${(function(){
+            if (!AU) return '<p class="empty">Audio unavailable.</p>';
+            const v = AU.settings;
+            const row = (k, label, fn) => `<div class="vol-row"><span>${label}</span>
+              <input type="range" min="0" max="100" value="${Math.round(v[k]*100)}"
+                oninput="SLS.UI.setVol('${fn}', this.value)"><b>${Math.round(v[k]*100)}</b></div>`;
+            return `<div class="setting-row"><span>Mute all</span>
+              <label class="switch"><input type="checkbox" ${v.muted?"checked":""}
+                onchange="SLS.UI.setMute(this.checked)"><span class="slider"></span></label></div>`
+              + row("master","Master","setMasterVolume") + row("music","Music","setMusicVolume")
+              + row("sfx","Sound effects","setSFXVolume") + row("ambience","Ambience","setAmbienceVolume");
+          })()}
+        </div>
+        <div class="panel ink-panel"><h3 class="brush-title">ACCESSIBILITY</h3>
+          ${sw("reducedShake","Reduce screen shake")}${sw("reducedFlash","Reduce flashes")}
+        </div>
         <div class="panel ink-panel"><h3 class="brush-title">MINIGAME ACCESSIBILITY</h3>
           ${sw("slowMinigames","Slow mode","40% slower timing")}${sw("wideWindows","Wider timing windows")}${sw("autoMinigames","Automatic mode","reduced rewards")}
         </div>
@@ -796,6 +844,7 @@
        HANDLERS
        ============================================================= */
     doActivity(id) {
+      if (AU) AU.playSFX("tap");
       const g = State.g;
       const a = C.activities.find(x => x.id === id);
       const changeScene = a && a.scene && a.scene !== g.scene;
@@ -816,6 +865,7 @@
         this.nav = "home"; });
     },
     acceptMission(id) {
+      if (AU) AU.playSFX("missionAccept");
       AM.setContext("TRAVELLING");
       Missions.accept(id, () => { AM.setContext("HOME"); this.renderAll(); });
     },
@@ -830,7 +880,10 @@
     commune(mode) { const r = Beasts.commune(mode); if (!r.ok) this.toast("Not now", r.reason, "bad"); else this.toast("Tailed Beast", r.text, ""); this.renderAll(); },
     setCloak(id) { const r = Beasts.setCloak(id); if (!r.ok && r.reason) this.toast("Refused", r.reason, "bad"); this.renderAll(); },
     toggleDojutsu() { const r = Dojutsu.toggle(); if (!r.ok) this.toast("Cannot", r.reason, "bad"); this.renderAll(); },
-    setSetting(k, v) { State.g.settings[k] = v; Save.autosave(); },
+    setSetting(k, v) { State.g.settings[k] = v; Save.autosave(); if (AU) AU.playSFX("tap"); },
+    setVol(fn, val) { if (AU && AU[fn]) { AU[fn](val / 100); this.renderView("records", "settings"); } },
+    setMute(v) { if (AU) { AU.setMuted(v); if (!v) { const g = State.g; AU.setScene(g ? g.scene : "overlook", {}); } }
+      this.renderView("records", "settings"); },
 
     /* =============================================================
        COMBAT UI
@@ -1169,17 +1222,52 @@
 
     init() {
       this.registerSW();
+      if (AU) AU.init();
       this.wire();
+      this.wireTapGate();
       const saved = Save.load();
       if (saved) {
         UI.loading("load", () => {
-          State.g = saved;
-          this.enterGame();
-          UI.toast("Welcome back", `${saved.char.name}, age ${saved.age}`, "good");
+          this.showTapGate(() => {
+            State.g = saved;
+            this.enterGame();
+            UI.toast("Welcome back", `${saved.char.name}, age ${saved.age}`, "good");
+          });
         });
       } else {
-        UI.loading("boot", () => { el("screen-creation").classList.add("active"); this.buildCreation(); });
+        UI.loading("boot", () => {
+          this.showTapGate(() => { el("screen-creation").classList.add("active"); this.buildCreation(); });
+        });
       }
+    },
+
+    /* iOS blocks audio until a real gesture: gate the first entry on a tap. */
+    wireTapGate() {
+      const gate = el("tap-gate");
+      if (!gate) return;
+      const enter = () => {
+        gate.classList.remove("on");
+        gate.setAttribute("aria-hidden", "true");
+        if (AU) {
+          AU.unlock();
+          if (!AU.isMuted()) {
+            const g = State.g;
+            if (g) AU.setScene(g.scene || "overlook", { night: (g.age % 4) === 3 });
+            else AU.playMusic("title", 700);
+          }
+        }
+        if (this._afterGate) { const f = this._afterGate; this._afterGate = null; f(); }
+      };
+      gate.addEventListener("click", enter);
+      gate.addEventListener("touchend", enter, { passive: true });
+      this._gateEnter = enter;
+    },
+    showTapGate(then) {
+      const gate = el("tap-gate");
+      this._afterGate = then;
+      if (!gate) { if (then) then(); return; }
+      gate.classList.add("on");
+      gate.setAttribute("aria-hidden", "false");
     },
 
     registerSW() {
@@ -1275,6 +1363,18 @@
       el("screen-game").classList.add("active");
       if (!State.g.scene || State.g.scene === "home") State.g.scene = "overlook";
       AM.attach(el("char-canvas"));
+      if (FX) {
+        FX.attach(el("fx-canvas"));
+        // Piggyback on the single animation loop — no second rAF.
+        const stageEl = el("char-stage");
+        AM.onFrame = (dt) => { FX.update(dt); FX.render(); FX.applyShake(stageEl); };
+        AM.onEffect((name) => {
+          const g = State.g; if (!g) return;
+          const nat = g.char.natures[0] || "Fire";
+          if (name === "hit") { FX.slash(); FX.burst("impact", { count: 10, shake: 5, flash: false }); }
+          else if (name === "release") { FX.burst(nat, { count: 20, speed: 90, shake: 4 }); }
+        });
+      }
       AM.setContext(State.g.flags.dead ? "DEAD" : "HOME");
       UI._lastStage = null;
       UI.showTab("overview");
