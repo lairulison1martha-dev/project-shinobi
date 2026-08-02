@@ -620,6 +620,108 @@
   };
 
   /* ---------------------------------------------------------------
+     ATTACHMENT ANCHORS
+     -----------------------------------------------------------------
+     Where each overlay layer (hair, eyes, headband, armour, weapon,
+     aura…) must sit for a given stage/state/frame, so the layer
+     compositor can pin art to the animated body instead of shipping a
+     separate full sprite sheet per combination.
+
+     Mirrors the layout maths in drawFrame. Values are returned
+     normalised (0..1 of the cell) so they survive any export scale.
+     `facing` is deliberately NOT applied — the compositor flips the
+     whole canvas, exactly like the base atlas blit does.
+     --------------------------------------------------------------- */
+  PX.anchors = function (cfg) {
+    cfg = cfg || {};
+    const stage = STAGES[cfg.stage] || STAGES.teen;
+    const st = cfg.state || "idle";
+    const p = cfg.pose || PX.poseFor(st, cfg.frame || 0, cfg);
+    const W = cfg.w || 96, H = cfg.h || 128;
+
+    const G0 = PX.geom(cfg.stage, W, H);
+    const groundY = G0.groundY, bodyH = G0.bodyH, headR = G0.headR;
+    const cx = W / 2;
+    const feetY = groundY - (p.airborne ? 10 : 0) + (p.bodyY || 0);
+    const crouch = p.crouch || 0;
+
+    const hipY = feetY - bodyH * 0.42 + crouch;
+    const shoulderY = feetY - bodyH * 0.86 + crouch;
+    const neckY = shoulderY - 1;
+    const headCy = neckY - headR * 0.82;
+    const leanOff = (p.lean || 0) * 0.10;          // facing applied by the compositor
+    const shoulderX = cx + leanOff;
+    const headX = shoulderX + leanOff * 0.9 + (p.headX || 0);
+
+    const armLen = bodyH * 0.21 * stage.limb;
+    const legLen = bodyH * 0.24 * stage.limb;
+    const torsoW = Math.max(5, Math.round(bodyH * 0.25));
+    const limbT = Math.max(2, Math.round(bodyH * 0.078));
+
+    // Hands: shoulder → elbow → hand, same chain the renderer walks.
+    const hand = (angA, angB, isBack) => {
+      const sx = shoulderX - (isBack ? 1 : -1) * (torsoW * 0.46);
+      const sy = shoulderY + 1;
+      const e = joint(sx, sy, armLen, angA, 1);
+      return joint(e.x, e.y, armLen * 0.95, angA + angB * 0.55, 1);
+    };
+    const foot = (angA, angB, isBack) => {
+      const hx = shoulderX - (isBack ? 1 : -1) * (torsoW * 0.24) - leanOff;
+      const k = joint(hx, hipY, legLen, angA, 1);
+      return joint(k.x, k.y, legLen * 0.95, angA - angB * 0.35, 1);
+    };
+    const hF = hand(p.armLA, p.armLB, false), hB = hand(p.armRA, p.armRB, true);
+    const fF = foot(p.legLA, p.legLB, false), fB = foot(p.legRA, p.legRB, true);
+
+    const eyeY = headCy + headR * 0.06;
+    const eyeDx = headR * 0.34;
+    const n = (x, y) => ({ x: x / W, y: y / H });
+
+    return {
+      // scalar metrics, normalised against the cell
+      headR: headR / W, torsoW: torsoW / W, limbT: limbT / W,
+      bodyH: bodyH / H, prone: !!(p.prone || cfg.prone), blink: p.blink === 1,
+      // attachment points
+      head:     n(headX, headCy),
+      brow:     n(headX, headCy - headR * 0.34),      // headband line
+      eyeL:     n(headX - eyeDx, eyeY),
+      eyeR:     n(headX + eyeDx, eyeY),
+      neck:     n(headX, neckY),
+      chest:    n(shoulderX, shoulderY + (hipY - shoulderY) * 0.35),
+      torso:    n(shoulderX, (shoulderY + hipY) / 2),
+      shoulderL:n(shoulderX + torsoW * 0.46, shoulderY + 1),
+      shoulderR:n(shoulderX - torsoW * 0.46, shoulderY + 1),
+      hip:      n(shoulderX, hipY),
+      handL:    n(hF.x, hF.y), handR: n(hB.x, hB.y),
+      footL:    n(fF.x, fF.y), footR: n(fB.x, fB.y),
+      ground:   n(cx, groundY),
+      centre:   n(cx, feetY - bodyH * 0.48),
+      // weapon carry mode this frame: "back" | "hand" | "draw" | null
+      weaponMode: p.weapon || null
+    };
+  };
+
+  /* Anchor table for every stage × state × frame — the export pipeline
+     writes this to assets/data/anchors.json. */
+  PX.anchorTable = function (w, h) {
+    const out = {};
+    Object.keys(STAGES).forEach(stageId => {
+      const states = {};
+      Object.keys(PX.states).forEach(s => {
+        if (!PX.allows(stageId, s)) return;
+        const def = PX.states[s];
+        const frames = [];
+        for (let f = 0; f < def.frames; f++) {
+          frames.push(PX.anchors({ stage: stageId, state: s, frame: f, w, h }));
+        }
+        states[s] = frames;
+      });
+      out[stageId] = states;
+    });
+    return out;
+  };
+
+  /* ---------------------------------------------------------------
      Convenience: build a standalone canvas for one frame
      (used by the ANIMATIONS strip panel and portraits)
      --------------------------------------------------------------- */

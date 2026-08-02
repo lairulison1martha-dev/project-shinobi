@@ -540,7 +540,9 @@ button, input, select, textarea { font-family: inherit; }
   height: clamp(230px, 34dvh, 420px);
   border: 1px solid #262b34; border-top: none; overflow: hidden; background: #0a0d12;
 }
-.stage-bg { position: absolute; inset: 0; }
+/* Clips the parallax plates, which are deliberately wider than the stage
+   so they have room to drift. Without this they widen the whole page. */
+.stage-bg { position: absolute; inset: 0; overflow: hidden; }
 .stage-bg svg { width: 100%; height: 100%; display: block; }
 #char-canvas {
   position: absolute; left: 50%; bottom: 2%; transform: translateX(-50%);
@@ -851,6 +853,105 @@ button, input, select, textarea { font-family: inherit; }
 .vol-row input[type=range] { width: 100%; height: 30px; accent-color: var(--gold); }
 .vol-row b { text-align: right; }
 .bg-plate { position: absolute; inset: 0; background-size: cover; background-position: center bottom; image-rendering: auto; }
+
+/* Parallax plates. Each sits slightly wider than the stage and drifts on a
+   long ease so the scene breathes; the nearer plate travels further, which
+   is what sells the depth. Purely decorative — no layout or gameplay effect. */
+.bg-layer {
+  position: absolute; top: 0; bottom: 0; left: -4%; width: 108%;
+  background-size: cover; background-position: center bottom;
+  background-repeat: no-repeat; pointer-events: none; will-change: transform;
+}
+.bg-layer.mid  { animation: bg-drift-mid 46s ease-in-out infinite alternate; }
+.bg-layer.near { animation: bg-drift-near 31s ease-in-out infinite alternate; }
+.bg-layer.near.night { filter: brightness(.42) saturate(.7); }
+.bg-layer.mid.night  { filter: brightness(.50) saturate(.75); }
+.bg-layer.still { animation: none; }
+@keyframes bg-drift-mid  { from { transform: translate3d(-1.1%, 0, 0); } to { transform: translate3d(1.1%, 0, 0); } }
+@keyframes bg-drift-near { from { transform: translate3d(2.2%, 0, 0) scale(1.02); } to { transform: translate3d(-2.2%, 0, 0) scale(1.02); } }
+@media (prefers-reduced-motion: reduce) { .bg-layer { animation: none; } }
+
 .bg-weather { position: absolute; inset: 0; pointer-events: none; }
 .bg-weather.day { background: linear-gradient(180deg, rgba(255,240,200,.06), transparent 45%); }
 .bg-weather.night { background: linear-gradient(180deg, rgba(20,30,60,.30), rgba(8,10,20,.18)); }
+
+/* =================================================================
+   UI ART PASS
+   Icon set, panel texture, border treatment and button art. Layout
+   geometry is deliberately untouched — this is surface only.
+   ================================================================= */
+
+/* ---- authored SVG icons (assets/ui/icons.svg) ---- */
+.ico {
+  width: 1.15em; height: 1.15em; vertical-align: -0.18em;
+  display: inline-block; flex: none; color: inherit;
+}
+.ico-run { display: inline-flex; align-items: center; gap: .18em; }
+/* Icons sitting alone in a tile should fill it rather than sit at text size. */
+.eq-slot .ico, .mc-ico .ico, .qj-slot .ico { width: 60%; height: 60%; vertical-align: 0; }
+.eq-slot .ico-run, .mc-ico .ico-run, .qj-slot .ico-run { width: 100%; height: 100%; justify-content: center; }
+.act-btn .ico, .btn .ico { width: 1.05em; height: 1.05em; }
+.nav-btn .ico { width: 1.4em; height: 1.4em; }
+
+/* ---- parchment / washi texture -----------------------------------
+   A repeating fibre pattern built from layered gradients: no image
+   file, no request, and it tiles seamlessly at any panel size. */
+:root {
+  --washi:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg,  rgba(0,0,0,.020) 0 1px, transparent 1px 4px),
+    radial-gradient(120% 80% at 20% 0%, rgba(232,221,196,.045), transparent 60%);
+  --edge-gold: linear-gradient(180deg, rgba(201,162,39,.55), rgba(201,162,39,.10));
+}
+
+.panel, .mini-card, .mv, .m-identity, .ink-panel {
+  background-image: var(--washi);
+  background-blend-mode: overlay;
+}
+
+/* Hairline gold rule along the top edge of every panel — the detail
+   that reads as "finished" rather than "boxed". */
+.panel, .ink-panel { position: relative; }
+.panel::before, .ink-panel::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+  background: var(--edge-gold); opacity: .7; pointer-events: none;
+}
+
+/* Corner ticks on raised cards — a brush-frame motif. */
+.mini-card { position: relative; }
+.mini-card::before, .mini-card::after {
+  content: ""; position: absolute; width: 7px; height: 7px; pointer-events: none;
+  border-color: rgba(201,162,39,.5); border-style: solid; border-width: 0;
+}
+.mini-card::before { top: 2px; left: 2px; border-top-width: 1px; border-left-width: 1px; }
+.mini-card::after  { bottom: 2px; right: 2px; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* ---- button art ---- */
+.btn, .act-btn {
+  background-image: linear-gradient(180deg, rgba(255,255,255,.055), transparent 55%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.35);
+}
+.btn:active, .act-btn:active {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.45);
+  transform: translateY(1px);
+}
+.btn.primary, .act-btn.primary {
+  background-image: linear-gradient(180deg, rgba(201,162,39,.30), rgba(201,162,39,.06) 60%);
+  border-color: rgba(201,162,39,.55);
+}
+
+/* Equipment slots read as inset sockets, filled ones lit by the gold rim. */
+.eq-slot {
+  background-image: radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,.05), transparent 60%);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.5);
+}
+.eq-slot.filled { border-color: rgba(201,162,39,.6); box-shadow: inset 0 2px 5px rgba(0,0,0,.4), 0 0 8px rgba(201,162,39,.18); }
+
+/* Bars get a glass highlight instead of a flat fill. */
+.mv-bar > i, .mc-bar > i, .stat-bar > i {
+  background-image: linear-gradient(180deg, rgba(255,255,255,.28), transparent 55%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active, .act-btn:active { transform: none; }
+}

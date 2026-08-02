@@ -56,6 +56,7 @@
     cloak: null, cloakColor: null,
     injured: false,
     hairColor: null, skinTone: null, clanMark: false,
+    descriptor: null,                 // layer stack description (SLS.Layers)
 
     /* ---- idle behaviour ---- */
     idleTimer: 0,
@@ -175,6 +176,10 @@
       else if (!this.injured && this.state === "injured") this.returnToDefault();
     },
     setNature(color, showAura) { this.natureColor = color || null; this.natureAura = !!showAura; },
+    /* Full layer descriptor (clan, eyes, gear, aura…). UI passes the
+       whole thing in one call; the individual setters above still work
+       for code that only needs one field. */
+    setDescriptor(desc) { this.descriptor = desc || null; },
     setCloak(id, color) { this.cloak = id && id !== "none" ? id : null; this.cloakColor = color || null; },
     setLooks(hairColor, skinTone, clanMark) {
       this.hairColor = hairColor || null;
@@ -321,8 +326,10 @@
         if (this.facing === -1) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(sheet.img, sx, sy, fw, fh, dx, dy, dw, dh);
+        // Layer stack composes inside the same flip, so overlays stay
+        // pinned to the body when the character faces left.
+        this.composeLayers(ctx, dx, dy, dw, dh, { sx, sy, sw: fw, sh: fh });
         ctx.restore();
-        this.drawOverlays(ctx, c, dx, dy, dw, dh);
         return;
       }
 
@@ -348,10 +355,29 @@
       });
     },
 
-    /* Layers that sit on top of the atlas frame: chakra aura, beast cloak
-       and the dojutsu glow. Kept as overlays so equipment changes never
-       swap the whole character image. */
-    drawOverlays(ctx, c, dx, dy, dw, dh) {
+    /* Everything that is not the base animation — clan, hair, eyes,
+       headband, outfit, armour, weapon, accessories, injuries, dojutsu,
+       aura, transformation, summon, jinchuriki — is composed on top by
+       SLS.Layers. The base atlas is never swapped for an equipment or
+       eye change. Falls back to the old flat overlays if layers.js is
+       not present. */
+    composeLayers(ctx, dx, dy, dw, dh, cell) {
+      const L = SLS.Layers;
+      if (L && this.descriptor) {
+        L.compose(ctx, {
+          dx, dy, dw, dh, cell,
+          stage: this.stage, state: this.state, frame: this.frame,
+          desc: this.descriptor, time: this.lastTs,
+          stageFolder: (SLS.Assets && SLS.Assets.stageFolder[this.stage]) || this.stage
+        });
+        return;
+      }
+      this.drawLegacyOverlays(ctx, dx, dy, dw, dh);
+    },
+
+    /* Pre-layers overlay path, kept so the renderer still works if the
+       layer module fails to load. */
+    drawLegacyOverlays(ctx, dx, dy, dw, dh) {
       const cx = dx + dw / 2;
       if (this.natureAura && this.natureColor) {
         ctx.save(); ctx.globalAlpha = 0.14; ctx.fillStyle = this.natureColor;

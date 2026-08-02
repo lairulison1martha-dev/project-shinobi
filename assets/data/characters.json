@@ -1,0 +1,258 @@
+{
+  "$schema": "shinobi-character-db/1",
+  "note": "Data-driven character definitions. The renderer assembles every entry from the layer stack in layers.js — stage supplies the animation atlas, everything else is an overlay. Adding a character here needs no code change.",
+  "layerOrder": [
+    "base", "clan", "hair", "eyes", "headband", "outfit", "armor", "weapon",
+    "accessory", "injury", "dojutsu", "aura", "transformation", "summon", "jinchuriki"
+  ],
+  "fields": {
+    "stage": "animation atlas: newborn|toddler|child|academy|genin|teen|adult|veteran|elder",
+    "clan": "overlay identity: uchiha|hyuga|uzumaki|senju|nara|common",
+    "hair": "css colour for the hair recolour layer",
+    "eyes": "normal|sharingan|mangekyo|eternal|byakugan|rinnegan",
+    "outfit": "css colour for the robe tint layer",
+    "armor": "dark|light|leaf|flak|robe|null",
+    "weapon": "kunai|shuriken|katana|tanto|naginata|scythe|bow|warfan|scroll|chain",
+    "headband": "true when the forehead protector is worn",
+    "aura": "Fire|Water|Wind|Earth|Lightning|Wood|Ice|Lava|Shadow|Healing|Beast",
+    "voice": "sfx voice set used for effort/hurt cues",
+    "idle": "idle animation variant preferred by this character",
+    "jutsu": "favourite technique, used for the jutsu effect colour + sound"
+  },
+  "voices": {
+    "child-light":  { "pitch": 1.35, "grain": 0.10 },
+    "youth-light":  { "pitch": 1.18, "grain": 0.14 },
+    "youth-firm":   { "pitch": 1.06, "grain": 0.20 },
+    "adult-calm":   { "pitch": 0.98, "grain": 0.16 },
+    "adult-rough":  { "pitch": 0.88, "grain": 0.30 },
+    "elder-worn":   { "pitch": 0.80, "grain": 0.38 }
+  },
+  "characters": {
+    "uchiha_prodigy": {
+      "name": "Uchiha Prodigy",
+      "stage": "genin", "clan": "uchiha",
+      "hair": "#1b1d29", "hairLong": false,
+      "eyes": "sharingan",
+      "outfit": "#1d2230", "armor": "dark",
+      "weapon": "katana", "headband": true,
+      "accessories": ["scarf", "gloves", "sandals", "pouch"],
+      "aura": "Fire", "voice": "youth-firm",
+      "idle": "shiftStance", "jutsu": "Great Fireball"
+    },
+    "uchiha_awakened": {
+      "name": "Uchiha Awakened",
+      "stage": "adult", "clan": "uchiha",
+      "hair": "#15161f", "hairLong": true,
+      "eyes": "mangekyo",
+      "outfit": "#161a24", "armor": "dark",
+      "weapon": "katana", "headband": false,
+      "accessories": ["cloak", "gloves", "belt"],
+      "aura": "Lava", "voice": "adult-rough",
+      "idle": "touchHilt", "jutsu": "Amaterasu",
+      "transformation": "chakra-mode"
+    },
+    "hyuga_heir": {
+      "name": "Hyuga Heir",
+      "stage": "genin", "clan": "hyuga",
+      "hair": "#2a2b33", "hairLong": true,
+      "eyes": "byakugan",
+      "outfit": "#e5e0d2", "armor": "robe",
+      "weapon": null, "headband": true,
+      "accessories": ["sandals", "belt"],
+      "aura": "Wind", "voice": "youth-light",
+      "idle": "lookAround", "jutsu": "Gentle Fist"
+    },
+    "hyuga_master": {
+      "name": "Hyuga Master",
+      "stage": "veteran", "clan": "hyuga",
+      "hair": "#3a3b44", "hairLong": true,
+      "eyes": "byakugan",
+      "outfit": "#ddd6c4", "armor": "robe",
+      "weapon": null, "headband": false,
+      "accessories": ["sandals", "belt", "cloak"],
+      "aura": "Wind", "voice": "elder-worn",
+      "idle": "shiftStance", "jutsu": "Eight Trigrams"
+    },
+    "uzumaki_sealer": {
+      "name": "Uzumaki Sealer",
+      "stage": "genin", "clan": "uzumaki",
+      "hair": "#b8392c", "hairLong": true,
+      "eyes": "normal",
+      "outfit": "#2c3550", "armor": "light",
+      "weapon": "scroll", "headband": true,
+      "accessories": ["scarf", "sandals", "pouch"],
+      "aura": "Healing", "voice": "youth-light",
+      "idle": "chakraFlicker", "jutsu": "Sealing Array"
+    },
+    "uzumaki_host": {
+      "name": "Uzumaki Host",
+      "stage": "teen", "clan": "uzumaki",
+      "hair": "#c8483a", "hairLong": false,
+      "eyes": "normal",
+      "outfit": "#2a3450", "armor": "flak",
+      "weapon": "kunai", "headband": true,
+      "accessories": ["gloves", "sandals", "pouch", "belt"],
+      "aura": "Beast", "voice": "youth-firm",
+      "idle": "stretch", "jutsu": "Rasengan",
+      "jinchuriki": { "stage": "cloak1", "tails": 1, "color": "#e2560f" }
+    },
+    "senju_forest": {
+      "name": "Senju of the Forest",
+      "stage": "adult", "clan": "senju",
+      "hair": "#3a2a1e", "hairLong": false,
+      "eyes": "normal",
+      "outfit": "#3d4a35", "armor": "leaf",
+      "weapon": "naginata", "headband": true,
+      "accessories": ["belt", "sandals", "cloak"],
+      "aura": "Wood", "voice": "adult-calm",
+      "idle": "shiftStance", "jutsu": "Wood Dragon"
+    },
+    "senju_healer": {
+      "name": "Senju Healer",
+      "stage": "teen", "clan": "senju",
+      "hair": "#4a3524", "hairLong": true,
+      "eyes": "normal",
+      "outfit": "#46543a", "armor": null,
+      "weapon": null, "headband": true,
+      "accessories": ["gloves", "sandals", "pouch"],
+      "aura": "Healing", "voice": "youth-light",
+      "idle": "chakraFlicker", "jutsu": "Mystical Palm"
+    },
+    "nara_tactician": {
+      "name": "Nara Tactician",
+      "stage": "genin", "clan": "nara",
+      "hair": "#1f2129", "hairLong": false,
+      "eyes": "normal",
+      "outfit": "#28303a", "armor": "flak",
+      "weapon": "kunai", "headband": true,
+      "accessories": ["gloves", "sandals", "pouch"],
+      "aura": "Shadow", "voice": "youth-firm",
+      "idle": "lookAround", "jutsu": "Shadow Possession"
+    },
+    "nara_captain": {
+      "name": "Nara Captain",
+      "stage": "adult", "clan": "nara",
+      "hair": "#22242d", "hairLong": true,
+      "eyes": "normal",
+      "outfit": "#232a34", "armor": "dark",
+      "weapon": "tanto", "headband": true,
+      "accessories": ["cloak", "gloves", "belt", "sandals"],
+      "aura": "Shadow", "voice": "adult-calm",
+      "idle": "touchHilt", "jutsu": "Shadow Stitching"
+    },
+    "common_academy": {
+      "name": "Academy Student",
+      "stage": "academy", "clan": "common",
+      "hair": "#2e2a26", "hairLong": false,
+      "eyes": "normal",
+      "outfit": null, "armor": null,
+      "weapon": null, "headband": false,
+      "accessories": [],
+      "aura": null, "voice": "child-light",
+      "idle": "lookAround", "jutsu": "Clone Technique"
+    },
+    "common_genin": {
+      "name": "Village Genin",
+      "stage": "genin", "clan": "common",
+      "hair": "#33302b", "hairLong": false,
+      "eyes": "normal",
+      "outfit": null, "armor": "flak",
+      "weapon": "kunai", "headband": true,
+      "accessories": ["sandals", "pouch"],
+      "aura": "Earth", "voice": "youth-light",
+      "idle": "headband", "jutsu": "Body Replacement"
+    },
+    "common_jonin": {
+      "name": "Village Jonin",
+      "stage": "adult", "clan": "common",
+      "hair": "#3b352e", "hairLong": false,
+      "eyes": "normal",
+      "outfit": null, "armor": "flak",
+      "weapon": "katana", "headband": true,
+      "accessories": ["gloves", "belt", "pouch", "sandals"],
+      "aura": "Lightning", "voice": "adult-calm",
+      "idle": "touchHilt", "jutsu": "Lightning Blade"
+    },
+    "mist_swordsman": {
+      "name": "Mist Swordsman",
+      "stage": "veteran", "clan": "common",
+      "hair": "#4a5058", "hairLong": false,
+      "eyes": "normal",
+      "outfit": "#2b3a44", "armor": "dark",
+      "weapon": "scythe", "headband": true,
+      "accessories": ["belt", "gloves"],
+      "aura": "Water", "voice": "adult-rough",
+      "idle": "touchHilt", "jutsu": "Water Dragon"
+    },
+    "snow_hunter": {
+      "name": "Snow Hunter",
+      "stage": "teen", "clan": "common",
+      "hair": "#6e7a8a", "hairLong": true,
+      "eyes": "normal",
+      "outfit": "#3d4c5e", "armor": "light",
+      "weapon": "bow", "headband": false,
+      "accessories": ["cloak", "gloves", "belt"],
+      "aura": "Ice", "voice": "youth-light",
+      "idle": "lookAround", "jutsu": "Ice Mirrors"
+    },
+    "sand_fanbearer": {
+      "name": "Sand Fanbearer",
+      "stage": "teen", "clan": "common",
+      "hair": "#c9a86a", "hairLong": true,
+      "eyes": "normal",
+      "outfit": "#7a6a48", "armor": "light",
+      "weapon": "warfan", "headband": true,
+      "accessories": ["belt", "sandals"],
+      "aura": "Wind", "voice": "youth-firm",
+      "idle": "shiftStance", "jutsu": "Wind Scythe"
+    },
+    "elder_sage": {
+      "name": "Elder Sage",
+      "stage": "elder", "clan": "common",
+      "hair": "#cfc9be", "hairLong": true,
+      "eyes": "normal",
+      "outfit": "#5a4f3c", "armor": null,
+      "weapon": "naginata", "headband": false,
+      "accessories": ["cloak", "sandals"],
+      "aura": "Healing", "voice": "elder-worn",
+      "idle": "lookAround", "jutsu": "Sage Art",
+      "transformation": "sage", "summon": "toad"
+    },
+    "rinnegan_wielder": {
+      "name": "Rinnegan Wielder",
+      "stage": "adult", "clan": "common",
+      "hair": "#b9a98c", "hairLong": true,
+      "eyes": "rinnegan",
+      "outfit": "#2e2b3a", "armor": "dark",
+      "weapon": "chain", "headband": false,
+      "accessories": ["cloak", "belt"],
+      "aura": "Shadow", "voice": "adult-calm",
+      "idle": "chakraFlicker", "jutsu": "Universal Pull",
+      "transformation": "chakra-mode"
+    },
+    "eternal_wielder": {
+      "name": "Eternal Wielder",
+      "stage": "veteran", "clan": "uchiha",
+      "hair": "#191a22", "hairLong": true,
+      "eyes": "eternal",
+      "outfit": "#14161e", "armor": "dark",
+      "weapon": "katana", "headband": false,
+      "accessories": ["cloak", "gloves", "belt"],
+      "aura": "Fire", "voice": "adult-rough",
+      "idle": "touchHilt", "jutsu": "Susanoo",
+      "transformation": "chakra-mode"
+    },
+    "beast_host": {
+      "name": "Beast Host",
+      "stage": "adult", "clan": "uzumaki",
+      "hair": "#d4573f", "hairLong": false,
+      "eyes": "normal",
+      "outfit": "#3a2f28", "armor": null,
+      "weapon": null, "headband": true,
+      "accessories": ["belt", "sandals"],
+      "aura": "Beast", "voice": "adult-rough",
+      "idle": "stretch", "jutsu": "Beast Bomb",
+      "jinchuriki": { "stage": "cloak3", "tails": 6, "color": "#e2560f" }
+    }
+  }
+}

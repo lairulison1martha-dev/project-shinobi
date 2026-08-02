@@ -91,10 +91,18 @@
   ].forEach(([id, name]) => {
     A.backgrounds[id] = {
       name,
-      day:   "assets/backgrounds/" + id + ".png",
-      night: "assets/backgrounds/" + id + "-night.png",
-      // parallax drift (px/sec) for the procedural overlay layers
-      layers: { sky: 0, far: 2, mid: 5, near: 10 }
+      // Sky + far ridge + baked atmosphere. WebP: these are smooth
+      // gradients, so lossy WebP is ~2% of the PNG size with no visible
+      // loss at display scale.
+      day:   "assets/backgrounds/" + id + ".webp",
+      night: "assets/backgrounds/" + id + "-night.webp",
+      // Transparent midground/foreground plates drawn over the base and
+      // drifted for parallax. A missing plate never breaks the scene —
+      // it just loses the depth.
+      plates: {
+        mid:  "assets/backgrounds/" + id + "-mid.webp",
+        near: "assets/backgrounds/" + id + "-near.webp"
+      }
     };
   });
 
@@ -152,7 +160,113 @@
     Water:     { sfx: "water",     color: "#4b93d1", glow: "#9fd6f0", particle: "splash" },
     Wind:      { sfx: "wind",      color: "#63c28a", glow: "#bdf0d2", particle: "slash" },
     Earth:     { sfx: "earth",     color: "#b58b4a", glow: "#e0c08a", particle: "rock" },
-    Lightning: { sfx: "lightning", color: "#d9c74b", glow: "#fbf5a8", particle: "spark" }
+    Lightning: { sfx: "lightning", color: "#d9c74b", glow: "#fbf5a8", particle: "spark" },
+    Wood:      { sfx: "earth",     color: "#4f7d43", glow: "#a9d18a", particle: "leaf" },
+    Ice:       { sfx: "water",     color: "#7fb6d9", glow: "#e6f6ff", particle: "shard" },
+    Lava:      { sfx: "fire",      color: "#d64518", glow: "#ffb347", particle: "ember" },
+    Shadow:    { sfx: "wind",      color: "#3a3050", glow: "#8f7fc0", particle: "wisp" },
+    Healing:   { sfx: "heal",      color: "#4fbf87", glow: "#d8ffe9", particle: "mote" },
+    Beast:     { sfx: "beast",     color: "#e2560f", glow: "#ffd166", particle: "bubble" }
+  };
+
+  /* ---------------- LAYER OVERLAY REGISTRY ----------------
+     Optional authored art for the composited layers. Anything listed
+     here that exists on disk is blitted by SLS.Layers in place of the
+     procedural painter; anything missing falls back automatically, so
+     art can be dropped in one file at a time.
+
+     Overlay atlases must use the SAME cell grid as the stage base
+     sheet (192x256) and the same row order, which is what lets one
+     overlay serve every animation without duplicating a sheet.
+
+     `byStage` lets a layer supply per-stage art where proportions
+     differ; a bare `sheet` is used for every stage. */
+  A.overlays = {
+    clan:   { uchiha: { byStage: {} }, hyuga: { byStage: {} }, uzumaki: { byStage: {} },
+              senju: { byStage: {} }, nara: { byStage: {} }, common: { byStage: {} } },
+    hair:   {}, eyes: {}, headband: {}, outfit: {}, armor: {},
+    weapon: {}, accessory: {}, injury: {}, dojutsu: {},
+    aura:   {}, transformation: {}, summon: {}, jinchuriki: {}
+  };
+  /* Folder each overlay layer's art is expected in, so the pipeline and
+     any future art drop agree on one location. */
+  A.overlayFolder = {
+    clan: "assets/characters/", hair: "assets/outfits/", eyes: "assets/eyes/",
+    headband: "assets/outfits/", outfit: "assets/outfits/", armor: "assets/outfits/",
+    weapon: "assets/weapons/", accessory: "assets/outfits/", injury: "assets/effects/",
+    dojutsu: "assets/eyes/", aura: "assets/effects/", transformation: "assets/effects/",
+    summon: "assets/summons/", jinchuriki: "assets/tailed-beasts/"
+  };
+
+  /* ---------------- DATA FILES ----------------
+     Anchors pin every overlay to the animated body; characters.json is
+     the data-driven character database. Both are fetched once and are
+     entirely optional — the renderer computes anchors live if the file
+     is unavailable (e.g. opened over file://). */
+  A.anchorTable = null;
+  A.characterDB = null;
+  A.data = {
+    anchors: "assets/data/anchors.json",
+    characters: "assets/data/characters.json"
+  };
+  /* ---------------- UI ICON SET ----------------
+     Authored SVG sprite injected once, then referenced with <use>. Each
+     glyph inherits currentColor so it picks up the surrounding panel
+     colour. Every icon keeps a text fallback: if the sprite cannot be
+     fetched (file://, offline first run) the original glyph stays and
+     nothing breaks. */
+  A.iconSprite = "assets/ui/icons.svg";
+  A.iconsReady = false;
+  /* text glyph → icon id. Drives the render-time swap in ui.js. */
+  A.iconMap = {
+    "🎽": "headband", "🗡": "sword", "⚔": "blades", "⚔️": "blades",
+    "🦺": "armor", "🛡": "shield", "⭕": "ring", "📜": "scroll", "📖": "book",
+    "✊": "fist", "🐾": "paw", "💰": "coin", "❤": "heart", "❤️": "heart",
+    "⚡": "bolt", "⭐": "star", "👑": "crown", "🏆": "trophy", "🏅": "medal",
+    "🔒": "lock", "💥": "burst", "🤝": "bond", "👥": "people", "🏃": "run",
+    "🏠": "home", "🏫": "school", "🎓": "school", "⛩": "torii", "🏪": "shop",
+    "🌲": "tree", "🏞": "mountain", "🎯": "target", "🧭": "compass",
+    "🔥": "fire", "💧": "water", "💨": "wind", "🌪": "wind", "🧱": "earth",
+    "🌀": "spiral", "☀": "sun", "🌸": "blossom", "🍁": "leaf", "❄": "snow",
+    "💾": "save", "📤": "export", "📥": "import", "🔄": "reset", "↔": "swap",
+    "🏋": "dumbbell", "🧘": "meditate"
+  };
+  A.loadIcons = function () {
+    if (location.protocol === "file:") return Promise.resolve(false);
+    return fetch(A.iconSprite)
+      .then(r => (r.ok ? r.text() : null))
+      .then(txt => {
+        if (!txt) return false;
+        const host = document.createElement("div");
+        host.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+        host.setAttribute("aria-hidden", "true");
+        host.innerHTML = txt;
+        document.body.appendChild(host);
+        A.iconsReady = true;
+        return true;
+      })
+      .catch(() => false);
+  };
+  /* Markup for one icon, or null when the sprite is unavailable. */
+  A.icon = function (glyph, cls) {
+    if (!A.iconsReady) return null;
+    const id = A.iconMap[glyph];
+    if (!id) return null;
+    return '<svg class="ico ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">'
+         + '<use href="#ico-' + id + '"></use></svg>';
+  };
+
+  A.loadData = function () {
+    if (location.protocol === "file:") {
+      // fetch() is blocked for file://; fall back to live computation.
+      if (SLS.PX && SLS.PX.anchorTable) A.anchorTable = SLS.PX.anchorTable(192, 256);
+      return Promise.resolve();
+    }
+    const get = (url) => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
+    return Promise.all([get(A.data.anchors), get(A.data.characters)]).then(([an, ch]) => {
+      A.anchorTable = an || (SLS.PX && SLS.PX.anchorTable ? SLS.PX.anchorTable(192, 256) : null);
+      A.characterDB = ch;
+    });
   };
 
   /* ---------------- LOADER ----------------
@@ -196,7 +310,9 @@
   };
   A.preloadScene = function (sceneId, night) {
     const b = A.backgrounds[sceneId];
-    if (b) A.load(night ? b.night : b.day);
+    if (!b) return;
+    A.load(night ? b.night : b.day);
+    if (b.plates) { A.load(b.plates.mid); A.load(b.plates.near); }
   };
 
 })();

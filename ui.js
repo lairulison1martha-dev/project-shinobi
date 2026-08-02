@@ -76,8 +76,45 @@
       const ov = el("modal-overlay");
       el("modal").className = "modal" + (wide ? " wide" : "");
       el("modal-body").innerHTML = html;
+      this.iconize(el("modal-body"));
       ov.classList.add("open"); ov.setAttribute("aria-hidden", "false");
       AM.resetIdleTimer();
+    },
+
+    /* Swap text glyphs for the authored SVG icon set.
+       Runs over text nodes only, so markup, handlers and layout are
+       untouched — and if the sprite never loaded, the original glyphs
+       simply stay on screen. */
+    iconize(root) {
+      if (!Assets || !Assets.iconsReady) return;
+      const host = root || document.getElementById("screen-game");
+      if (!host) return;
+      const walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT, {
+        acceptNode(n) {
+          if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          const p = n.parentNode;
+          if (!p || p.nodeName === "SCRIPT" || p.nodeName === "STYLE" || p.nodeName === "TEXTAREA")
+            return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      const hits = [];
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        for (const g in Assets.iconMap) { if (n.nodeValue.indexOf(g) >= 0) { hits.push(n); break; } }
+      }
+      hits.forEach(n => {
+        let html = "", changed = false;
+        for (const ch of n.nodeValue) {
+          const svg = Assets.icon(ch);
+          if (svg) { html += svg; changed = true; }
+          else html += ch.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+        if (!changed) return;
+        const span = document.createElement("span");
+        span.className = "ico-run";
+        span.innerHTML = html;
+        n.parentNode.replaceChild(span, n);
+      });
     },
     closeModal() {
       const ov = el("modal-overlay");
@@ -113,6 +150,8 @@
       });
       AM.setDojutsu(g.dojutsu && g.dojutsu.active && g.dojutsu.stage !== "none" ? g.dojutsu.type : null);
       AM.setNature(nat ? NAT(nat).color : null, !!nat);
+      // Full layer stack: clan, hair, eyes, gear, aura, beast cloak…
+      if (SLS.Layers) AM.setDescriptor(SLS.Layers.describe(g));
       AM.setLooks(g.char.hairColor, g.char.skin, g.char.clan !== "civilian");
       const j = g.jinchuriki;
       AM.setCloak(j && j.cloak, j ? (C.beast(j.beastId) || {}).color : null);
@@ -284,8 +323,16 @@
         if (State.g && (State.g.scene || "overlook") === sceneId) this.renderStage();
       });
       if (img && img.__ready && !img.__failed) {
-        // Final art plate + a procedural atmosphere layer on top.
-        el("stage-bg").innerHTML = `<div class="bg-plate" style="background-image:url('${url}')"></div>`
+        // Base plate (sky + far ridge + atmosphere), then the midground and
+        // foreground plates which drift slowly for parallax depth. Motion is
+        // CSS-only and disabled by the reduced-motion setting, so gameplay
+        // and layout are untouched either way.
+        const pl = bgDef.plates || {};
+        const still = (State.g && State.g.settings && State.g.settings.reducedFX) ? " still" : "";
+        el("stage-bg").innerHTML =
+            `<div class="bg-plate" style="background-image:url('${url}')"></div>`
+          + (pl.mid ? `<div class="bg-layer mid${still}${night ? " night" : ""}" style="background-image:url('${pl.mid}')"></div>` : "")
+          + (pl.near ? `<div class="bg-layer near${still}${night ? " night" : ""}" style="background-image:url('${pl.near}')"></div>` : "")
           + `<div class="bg-weather ${night ? "night" : "day"}"></div>`;
       } else {
         el("stage-bg").innerHTML = Sprite.scene(sceneId, { night });
@@ -343,6 +390,11 @@
 
       this.renderMobileBlocks();
       this.renderQuickJutsu();
+      // renderStage also runs from the background-decode callback, i.e. after
+      // renderAll's icon pass. Re-run it here so the slots and cards this
+      // method rewrites keep their authored icons.
+      [el("eq-slots"), el("card-bloodline"), el("card-nature"), el("jin-mini")]
+        .forEach(n => this.iconize(n));
     },
 
     /* Phone-only identity + vitals shown directly beneath the hero. */
@@ -556,6 +608,7 @@
       if (this._lastStage !== State.g.stageId) { this._lastStage = State.g.stageId; this.renderAnimPanel(); }
       else this.renderLegend();
       if (this.tab !== "overview") this.renderView(this.tab);
+      this.iconize();
     },
 
     renderView(tab, page) {
@@ -1223,6 +1276,11 @@
     init() {
       this.registerSW();
       if (AU) AU.init();
+      // Anchor table + character database drive the layer compositor.
+      // Both are optional: the renderer computes anchors live if the
+      // fetch fails, so this never blocks startup.
+      if (Assets && Assets.loadData) Assets.loadData().then(() => AM && AM.refresh());
+      if (Assets && Assets.loadIcons) Assets.loadIcons().then(ok => { if (ok) UI.iconize(); });
       this.wire();
       this.wireTapGate();
       const saved = Save.load();

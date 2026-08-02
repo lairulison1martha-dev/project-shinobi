@@ -135,26 +135,75 @@ stage scrolls out of view. `AnimationManager` owns state transitions, queueing,
 interrupt rules, facing, idle variations, the inactivity jump, and hit-frame
 effect sync — gameplay code only calls `setState`/`playOnce`/`setContext`.
 
-## Assets & audio (v4)
+## Layered art pipeline (v5)
 
-`assets.js` is the single manifest for every path plus the sprite frame data
-(row, frame count, duration, loop, hit frame). Nothing else hard-codes a path.
+The character is **composed from reusable layers**, not from one sheet per
+combination. A Hyuga genin with a katana and an active Byakugan costs one base
+atlas plus a handful of small overlays — nothing here duplicates an animation.
 
-**Sprites** — nine PNG atlases (one per age stage) exported from the parametric
-pixel renderer, 192×256 cells. `animation.js` blits from the atlas and falls back
-to the procedural renderer if a sheet is missing, so the game never breaks.
-Aura, beast cloak, dojutsu glow and injury are drawn as overlays, so equipment
-changes never swap the character image.
+The stage atlases in `assets/characters/<stage>/` remain the single source of
+animation: age, proportions, movement, states and timing. Everything else is an
+overlay composited by `layers.js` in a fixed order:
 
-**Backgrounds** — 30 PNG plates (15 scenes × day/night) with a procedural
-atmosphere layer composited on top.
+```
+base → clan → hair → eyes → headband → outfit → armor → weapon → accessories
+     → injuries → dojutsu → chakra aura → transformation → summon → jinchuriki
+```
 
-**Audio** — `audio.js` is a Web Audio engine with master/music/ambience/SFX
-buses, crossfades, mute, persistence and tab-visibility pausing. Nothing
-autoplays: a **"Tap to enter the village"** gate performs the iOS unlock, then
-scene-mapped music and ambience start. 62 original clips: 12 music loops, 7
-ambience beds, 43 SFX. Sounds are frame-synced — footsteps on contact frames,
-sword on the swing frame, impact on the hit frame, jutsu on the release frame.
+Each layer resolves in two steps: an overlay atlas PNG aligned cell-for-cell
+with the base sheet (drop art into `assets/<folder>/` and it is picked up
+automatically), otherwise a procedural painter. Overlays are pinned to the body
+by **attachment anchors** — `assets/data/anchors.json` holds head, brow, eyes,
+neck, chest, torso, shoulders, hip, hands, feet and ground positions for every
+stage × state × frame, so a weapon tracks the hand through a swing and the eyes
+stay on the face in every pose.
+
+**Clans** (`uchiha`, `hyuga`, `uzumaki`, `senju`, `nara`) contribute crests,
+hair, robes, armour variants and signature effects — Uzumaki chakra chains,
+Nara shadow tendrils, Senju wood accents. They never replace the animation.
+
+**Dojutsu** are always their own layer: Normal, Sharingan (orbiting tomoe),
+Mangekyo, Eternal Mangekyo, Byakugan (temple veins), Rinnegan (concentric
+ripples). Changing an eye never duplicates a sheet.
+
+**Chakra aura** stays procedural, one recipe per nature: Fire, Water, Wind,
+Earth, Lightning, Wood, Ice, Lava, Shadow, Healing and Tailed Beast.
+
+**Data-driven characters** — `assets/data/characters.json` defines stage, clan,
+hair, eyes, outfit, weapon, headband, aura, voice, idle animation and favourite
+jutsu per character. `Layers.fromPreset(id)` renders any entry through the exact
+same pipeline as the player, so adding a character needs no code change.
+
+## Backgrounds & UI art
+
+**Backgrounds** — 60 WebP plates (15 scenes × day/night, plus transparent
+midground and foreground plates). Each scene is built from sky, far ridge,
+midground, foreground, lighting and atmosphere layers with distance fog, light
+shafts, weather particles and a vignette. The mid and near plates drift on long
+CSS eases for parallax; motion is disabled by the reduced-motion setting and has
+no effect on layout or gameplay.
+
+**UI** — `assets/ui/icons.svg` is an authored 24×24 brush/ink icon set drawn
+with `currentColor`, injected once and referenced with `<use>`. `UI.iconize()`
+swaps text glyphs for it over text nodes only, so markup and handlers are
+untouched, and if the sprite cannot be fetched the original glyphs simply stay.
+Panels pick up a washi fibre texture, a hairline gold top rule and corner ticks.
+
+## Audio
+
+`audio.js` is a Web Audio engine with master/music/ambience/SFX buses,
+crossfades, mute, persistence and tab-visibility pausing. Nothing autoplays: a
+**"Tap to enter the village"** gate performs the iOS unlock, then scene-mapped
+music and ambience start.
+
+62 original clips — 12 music loops, 7 ambience beds, 43 SFX — synthesised from
+modelled instruments: Karplus-Strong plucked string (koto/shamisen),
+breath-excited resonant tube (shakuhachi), pitch-enveloped membrane (taiko),
+struck bar with inharmonic partials (bells), a Schroeder reverb for room tails,
+ADSR envelopes, per-clip peak normalisation and a soft limiter. Music and
+ambience loops are crossfaded at the seam so they repeat without a click.
+Sounds are frame-synced — footsteps on contact frames, sword on the swing frame,
+impact on the hit frame, jutsu on the release frame.
 
 **Effects** — `fx.js` pools 90 particles max and rides the single animation
 loop. Per-nature bursts, slash trails, impact sparks, screen shake, flashes,
@@ -185,7 +234,15 @@ On iOS: Share → **Add to Home Screen** for a fullscreen, offline, safe-area-aw
 | `systems.js` | Personality, Relations, Academy, Techniques, Shop, Achievements, Endings |
 | `world.js` | Dojutsu, Summons, Beasts, Combat, Missions, Exploration, Engine |
 | `minigames.js` | Chakra timing + precision throwing |
+| `assets.js` | Single manifest: sprite frame data, backgrounds, overlays, audio, icon set, loaders |
+| `layers.js` | Layered character compositor: clan, gear, dojutsu, aura, summon, jinchuriki |
+| `animation.js` | Animation state machine; blits the atlas then composes the layer stack |
+| `audio.js` | Web Audio engine: buses, crossfades, iOS unlock, frame-synced SFX |
+| `fx.js` | Pooled particle and screen effects |
 | `ui.js` | Rendering, flows, bootstrap |
+| `assets/data/anchors.json` | Attachment anchors per stage × state × frame |
+| `assets/data/characters.json` | Data-driven character database |
+| `assets/ui/icons.svg` | Authored UI icon sprite |
 | `sw.js`, `manifest.webmanifest`, `icon-*.png` | PWA / offline install |
 
 Everything is data-driven: add a clan, weapon, scene, encounter or event by appending to
